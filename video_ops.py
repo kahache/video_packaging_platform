@@ -17,22 +17,33 @@ from database import *
 #result = mp4utils.Mp4Info('--format json',"BigBuckBunny.mp4","/Users/javierbrines/Documents/Rakuten/video_packaging_platform")
 #mp4utils.Mp4Info('',"/Users/javierbrines/Documents/Rakuten/video_packaging_platform/BigBuckBunny.mp4")
 
-def video_track_number():
-    input_file = "/Users/javierbrines/Documents/Rakuten/video_packaging_platform/BigBuckBunny.mp4"
-    subprocess.run("./mp4info {} --format json > out.json".format(input_file),stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+def video_ingestion(input_file):
+    #input_file = "/Users/javierbrines/Documents/Rakuten/video_packaging_platform/BigBuckBunny.mp4"
+    print(input_file)
+    subprocess.run("./mp4info {} --format json > out.json".format(input_file),
+    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     with open('out.json') as f:
         data = json.load(f)
         items = data.get('tracks')
         for item in items:
             if item.get('type') == 'Video':
                 video_track = (item.get('id'))
+    #            print(video_track)
                 #print(type(video_track))
-                Database.insert("BigBuckBunny.mp4",1,"/Users/javierbrines/Documents/Rakuten/video_packaging_platform/BigBuckBunny.mp4",video_track,"Ingested",'NULL','NULL','NULL','NULL')
+                subprocess.run("mv {} storage/".format(input_file),
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                 shell=True)
+                Database.insert(input_file,None,("storage/"+input_file),
+                video_track,"Ingested",None,None,None,None)
+
+            #    Database.insert("BigBuckBunny.mp4",1,"/Users/javierbrines/Documents/Rakuten/video_packaging_platform/BigBuckBunny.mp4",video_track,"Ingested",'NULL','NULL','NULL','NULL')
+            #else:
+            #    print("Error: file {} doesn't contain a video track".format(input_file))
 
 #def encrypt():
 #    video_track_number()
-    input_file = "/Users/javierbrines/Documents/Rakuten/video_packaging_platform/fragmentao.mp4"
-    output_file = "/Users/javierbrines/Downloads/prueba_encripted_script.mp4"
+#    input_file = "/Users/javierbrines/Documents/Rakuten/video_packaging_platform/fragmentao.mp4"
+#    output_file = "/Users/javierbrines/Downloads/prueba_encripted_script.mp4"
     #key = "hyN9IKGfWKdAwFaE5pm0qg"
     #kid = "oW5AK5BW43HzbTSKpiu3SQ"
     #video_track = "2"
@@ -43,7 +54,8 @@ def fragment(input_file,output_file,otra_cosa):
     Database.update('status','Fragmented','1')
 
 def encrypt(input_file,output_file):
-    encrypt_custom_command = ("./mp4encrypt --method MPEG-CBCS --key "+ str(video_track) +":random:random "+ input_file + " " + output_file)
+    encrypt_custom_command = ("./bin/mp4encrypt --method MPEG-CBCS --key "+
+     str(video_track) +":random:random "+ input_file + " " + output_file)
     #print(fragment_custom_command)
     #subprocess.run(encrypt_custom_command,stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     Database.update('status','Encrypted','1')
@@ -51,7 +63,10 @@ def encrypt(input_file,output_file):
 Database.__init__()
 print(Database.view())
 #video_track_number()
-fragment("archivo","cosa","otra_cosa")
+file="BigBuckBunny2.mp4"
+video_ingestion(file)
+print(Database.view())
+#fragment("archivo","cosa","otra_cosa")
 #encrypt()
 
 
