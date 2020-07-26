@@ -40,12 +40,14 @@ def video_track_number():
 
 def fragment(input_file,output_file,otra_cosa):
     #fragment_custom_command = ("./mp4fragment " + input_file + " " + output_file)
-    Database.update('status','Ingested','1')
+    Database.update('status','Fragmented','1')
 
 def encrypt(input_file,output_file):
     encrypt_custom_command = ("./mp4encrypt --method MPEG-CBCS --key "+ str(video_track) +":random:random "+ input_file + " " + output_file)
     #print(fragment_custom_command)
     #subprocess.run(encrypt_custom_command,stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+    Database.update('status','Encrypted','1')
+
 Database.__init__()
 print(Database.view())
 #video_track_number()
