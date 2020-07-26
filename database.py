@@ -5,15 +5,15 @@ class Database:
     def __init__():
         conn=sqlite3.connect("movies.db")
         cur=conn.cursor()
-        cur.execute("CREATE TABLE IF NOT EXISTS movie_files (input_content TEXT, input_content_id INTEGER, file_path TEXT, key TEXT, kid TEXT, packaged_content_id TEXT, url TEXT)")
+        cur.execute("CREATE TABLE IF NOT EXISTS movie_files (input_content TEXT, input_content_id INTEGER, file_path TEXT, video_track_number INTEGER, status TEXT, key TEXT, kid TEXT, packaged_content_id TEXT, url TEXT)")
         conn.commit()
         conn.close
 
 
-    def insert(input_content,input_content_id,file_path,key,kid,packaged_content_id,url):
+    def insert(input_content,input_content_id,file_path,video_track_number,status,key,kid,packaged_content_id,url):
         conn=sqlite3.connect("movies.db")
         cur=conn.cursor()
-        cur.execute("INSERT INTO movie_files VALUES (?,?,?,?,?,?,?)",(input_content,input_content_id,file_path,key,kid,packaged_content_id,url))
+        cur.execute("INSERT INTO movie_files VALUES (?,?,?,?,?,?,?,?,?)",(input_content,input_content_id,file_path,video_track_number,status,key,kid,packaged_content_id,url))
         conn.commit()
         conn.close
 
@@ -32,17 +32,22 @@ class Database:
         conn.commit()
         conn.close()
 
-    def update(input_content_id,file_path,input_content):
+    def update(column,value,input_content_id):
         conn=sqlite3.connect("movies.db")
         cur=conn.cursor()
-        cur.execute("UPDATE movie_files SET input_content_id=?, file_path=? WHERE uploaded_file=?",(input_content_id,file_path,input_content))
+        cur.execute("UPDATE movie_files SET "+column+" = \""+value+ "\" WHERE input_content_id = "+input_content_id)
         conn.commit()
         conn.close()
 
-    def update_prueba(tipo,valor):
+    def update_prueba(column,value,input_content_id):
         conn=sqlite3.connect("movies.db")
         cur=conn.cursor()
-        cur.execute("UPDATE movie_files SET tipo=valor WHERE uploaded_file=?",(tipo))
+        #string_query=("UPDATE movie_files SET "+tipo+" = \""+valor+ "\" WHERE input_content_id = "+input_content_id)
+        #cur.execute("UPDATE movie_files SET %s = %s WHERE input_content_id = %d",(tipo,valor),input_content_id)
+        print(string_query)
+        cur.execute("UPDATE movie_files SET "+column+" = \""+value+ "\" WHERE input_content_id = "+input_content_id)
+        #cur.execute("SELECT %s FROM Data where %s=?" % (column, goal), (constrain,))
+        #cur.execute("SELECT "+column+" FROM Data where "+goal+"=?", (constrain,))
         conn.commit()
         conn.close()
 
@@ -50,5 +55,5 @@ class Database:
 #create_table()
 #insert("archivo_1",2,"/archivo/dondesencuentra","NULL","NULL","NULL","NULL")
 #connect()
-Database.__init__()
-print(Database.view())
+#Database.__init__()
+#print(Database.view())
