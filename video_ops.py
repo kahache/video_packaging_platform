@@ -4,6 +4,7 @@ import sys
 import json
 #import mp4utils
 from database import *
+import ntpath
 
 #def upload():
     #    subprocess.call('mv '+file_name+' storage/',shell=True)
@@ -20,6 +21,7 @@ from database import *
 def video_ingestion(input_file):
     #input_file = "/Users/javierbrines/Documents/Rakuten/video_packaging_platform/BigBuckBunny.mp4"
     print(input_file)
+    os.chdir(bin_dir)
     subprocess.run("./mp4info {} --format json > out.json".format(input_file),
     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     with open('out.json') as f:
@@ -30,15 +32,24 @@ def video_ingestion(input_file):
                 video_track = (item.get('id'))
     #            print(video_track)
                 #print(type(video_track))
+                os.chdir(working_dir)
                 subprocess.run("mv {} storage/".format(input_file),
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                  shell=True)
-                Database.insert(input_file,None,("storage/"+input_file),
+                file_name=ntpath.basename(input_file)
+                Database.insert(input_file,None,(storage_dir+"/"+file_name),
                 video_track,"Ingested",None,None,None,None)
+            else:
+                print("Error: file {} doesn't contain a video track".format(input_file))
+                #OPTIONAL - we erase the input_file
+                #subprocess.run("rm {}".format(input_file),
+                #stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                # shell=True)
+
+
 
             #    Database.insert("BigBuckBunny.mp4",1,"/Users/javierbrines/Documents/Rakuten/video_packaging_platform/BigBuckBunny.mp4",video_track,"Ingested",'NULL','NULL','NULL','NULL')
             #else:
-            #    print("Error: file {} doesn't contain a video track".format(input_file))
 
 #def encrypt():
 #    video_track_number()
@@ -63,7 +74,10 @@ def encrypt(input_file,output_file):
 Database.__init__()
 print(Database.view())
 #video_track_number()
-file="BigBuckBunny2.mp4"
+working_dir = os.getcwd()
+bin_dir=os.getcwd()+"/bin"
+storage_dir=os.getcwd()+"/storage"
+file="/Users/javierbrines/Documents/Rakuten/video_packaging_platform/BigBuckBunny.mp4"
 video_ingestion(file)
 print(Database.view())
 #fragment("archivo","cosa","otra_cosa")
@@ -85,7 +99,7 @@ print(Database.view())
 #    data = output_file.read()
 
 
-buffer_file = '/Users/javierbrines/Documents/Rakuten/video_packaging_platform/buffer.txt'
+#buffer_file = '/Users/javierbrines/Documents/Rakuten/video_packaging_platform/buffer.txt'
 
 # Store the reference, in case you want to show things again in standard output
 #old_stdout = sys.stdout
