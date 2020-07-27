@@ -5,26 +5,39 @@ class Database:
     def __init__():
         conn=sqlite3.connect("movies.db")
         cur=conn.cursor()
-        cur.execute("CREATE TABLE IF NOT EXISTS movie_files (input_content TEXT, input_content_id INTEGER PRIMARY KEY AUTOINCREMENT, file_path TEXT, video_track_number INTEGER, status TEXT, key TEXT, kid TEXT, packaged_content_id TEXT, url TEXT)")
+        cur.execute("CREATE TABLE IF NOT EXISTS movie_files (input_content TEXT, input_content_id INTEGER PRIMARY KEY AUTOINCREMENT, origin_file_path TEXT, video_track_number INTEGER, status TEXT, output_file_path TEXT, key TEXT, kid TEXT, packaged_content_id TEXT, url TEXT)")
         conn.commit()
         conn.close
 
 
-    def insert(input_content,input_content_id,file_path,video_track_number,
-    status,key,kid,packaged_content_id,url):
+    def insert(input_content,input_content_id,origin_file_path,
+    video_track_number,status,output_file_path,key,kid,packaged_content_id,url):
         conn=sqlite3.connect("movies.db")
         cur=conn.cursor()
-        cur.execute("INSERT INTO movie_files VALUES (?,?,?,?,?,?,?,?,?)",
-        (input_content,input_content_id,file_path,video_track_number,status,key,
-        kid,packaged_content_id,url))
+        cur.execute("INSERT INTO movie_files VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+        (input_content,input_content_id,origin_file_path,video_track_number,
+        status,output_file_path,key,kid,packaged_content_id,url))
         conn.commit()
         conn.close
 
-    def view():
+    def view_all():
         conn=sqlite3.connect("movies.db")
         cur=conn.cursor()
         cur.execute("SELECT * FROM movie_files")
         rows=cur.fetchall()
+        conn.close()
+        return rows
+
+
+    def view_one_row(row,input_content_id):
+        conn=sqlite3.connect("movies.db")
+        cur=conn.cursor()
+        cur.execute("SELECT {}".format(row)+
+        " FROM movie_files WHERE input_content_id = {}"
+        .format(input_content_id))
+        #print(row)
+        #print(input_content_id)
+        rows=cur.fetchone()[0]
         conn.close()
         return rows
 
@@ -62,4 +75,4 @@ class Database:
 #insert("archivo_1",2,"/archivo/dondesencuentra","NULL","NULL","NULL","NULL")
 #connect()
 #Database.__init__()
-#print(Database.view())
+#print(Database.view_prueba("file_path",15))
