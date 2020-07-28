@@ -1,0 +1,4 @@
+Flask
+mysql
+mysql-connector
+pyopenssl
