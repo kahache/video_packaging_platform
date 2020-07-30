@@ -64,14 +64,14 @@ class Database:
         connection.close()
 
 #We define the table we're going to use
-#db_name="video_files"
-#table_name="movie_files"
+db_name="video_files"
+table_name="movie_files"
 #We modify here the MySQL config parameters
-#config = {
-#    'user': 'root',
-#    'password': 'root',
-#    'host': '127.0.0.1',
-#    'port': '3306',
-#    'database': 'video_files'
-#}
-#Database.__init__(db_name,table_name)
+config = {
+    'user': 'root',
+    'password': 'root',
+    'host': '127.0.0.1',
+    'port': '3306',
+    'database': 'video_files'
+}
+Database.__init__(db_name,table_name)
