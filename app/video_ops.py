@@ -10,15 +10,16 @@ import base64
 
 #further this exercise, we should consider a file normalisation function
 class Video_ops:
+    
     def video_ingest(input_file):
         os.chdir(bin_dir)
         try:
             subprocess.check_output("./mp4info {} --format json > out.json".
                                     format(input_file), shell=True)
         except subprocess.CalledProcessError as e:
-            text_output=("ERROR - Corrupted or wrong file, please review the file. Details:"
+            output=("ERROR - Corrupted or wrong file, please review the file. Details:"
                         +'\n'+'\n', e)
-            return text_output
+            return output
             raise
         with open('out.json') as f:
             data = json.load(f)
@@ -34,16 +35,16 @@ class Video_ops:
                                                 format(storage_dir),shell=True)
                         file_name=ntpath.basename(input_file)
                         #DATABASE - we add 1 as confirmation process went good!
-                        text_output=("OK - File "+input_file+
+                        output=("OK - File "+input_file+
                                     " has been processed and moved to storage\n\n",1)
-                        return text_output
+                        return output
                     except subprocess.CalledProcessError as e:
-                        text_output=("\nERROR - can't move the file to storage\n\n",e)
-                        return text_output
+                        output=("\nERROR - can't move the file to storage\n\n",e)
+                        return output
                         raise
             if video_found_flag == 0:
-                text_output=("ERROR - An error has been occured, file doesn't contain an audio track ")
-                return text_output
+                output=("ERROR - An error has been occured, file doesn't contain an audio track ")
+                return output
         #OPTIONAL - we erase the input_file
         #subprocess.run("rm {}".format(input_file),stdout=subprocess.DEVNULL,
         #stderr=subprocess.DEVNULL,shell=True)
@@ -59,40 +60,60 @@ class Video_ops:
         os.mkdir(output_code, mode=0o0755)
         os.chdir(bin_dir)
         fragment_custom_command = ("./mp4fragment " + str(input_file) + " " +
-                                    output_file)
+                                    output_file_path)
         try:
             subprocess.check_output(fragment_custom_command,shell=True)
-            text_output=("OK - File "+file+
+            output=("OK - File "+file+
                         " has been fragmented and is ready to encrypt\n\n",output_file_path,1)
-            return text_output
+            return output
         except subprocess.CalledProcessError as e:
-            text_output=("\nERROR - can't fragment the video file"+
+            output=("\nERROR - can't fragment the video file"+
                         input_file+"\n\n",e)
-            return text_output
+            return output
             raise
         os.chdir(working_dir)
 
-    def video_encrypt(video_track_number,key,kid,file_to_encrypt):
+    def video_encrypt(video_track_number,key,kid,input_file):
         os.chdir(bin_dir)
-        #DEFINIR OUTPUT
-
         string1=(key+"==")
         video_key=(base64.b64decode(string1).hex())
         string2=(kid+"==")
         video_kid=(base64.b64decode(string2).hex())
-        output_file_path="/Users/javierbrines/Documents/Rakuten/video_packaging_platform/storage/prueba_encryptado.mp4"
+        output_file_path=(os.path.splitext(input_file)[0])+"_enc.mp4"
         encrypt_custom_command = ("./mp4encrypt --method MPEG-CBCS --key " +
                                 str(video_track_number) + ":" + video_key +
                                 ":random " + "--property " + str(video_track_number) +
-                                 ":KID:" + video_kid + " " + file_to_encrypt +  " " +
+                                 ":KID:" + video_kid + " " + input_file +  " " +
                                   output_file_path)
-        print(encrypt_custom_command)
+        try:
+            subprocess.check_output(encrypt_custom_command,shell=True)
+            output=("\nOK - File" + input_file + " has been encrypted with key:" +
+                    key + "kid:"+kid+ "\n\n",output_file_path,1)
+            return output
+        except subprocess.CalledProcessError as e:
+            output=("\nERROR - can't encrypt the video file"+
+                    input_file + "\n\n",e)
+            return output
+            raise
+        os.chdir(working_dir)
         #subprocess.run(encrypt_custom_command,stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         os.chdir(working_dir)
-        #Database.update('status','Encrypted','1')
 
-    def video_dash():
-        process_algo
+    def video_dash(input_file):
+        os.chdir(bin_dir)
+        path, file = os.path.split(input_file)
+        dash_custom_command = ("./mp4dash " + input_file +" -o "+
+                                path +"/dash/")
+        try:
+            subprocess.check_output(dash_custom_command,shell=True)
+            output=("\nOK - File" + input_file + " has been processed into " + path + "/dash/stream.mpd" + "\n\n",1)
+            return output
+        except subprocess.CalledProcessError as e:
+            output=("\nERROR - can't generate the mpd file"+
+                    input_file + "\n\n",e)
+            return output
+            raise
+        os.chdir(working_dir)
 
 #We define the table we're going to use
 db_name="video_files"
@@ -139,6 +160,21 @@ kid="oW5AK5BW43HzbTSKpiu3SQ"
 #video_encrypt(video_track_number,key,kid,file_to_encrypt)
 
 
+input_file="/Users/javierbrines/Documents/Rakuten/video_packaging_platform/app/../output/KCXP3G/KCXP3G.mp4"
 #print(Database.view())
 #fragment("origin_file_path",3)
-#encrypt("output_file_path",key,kid,3)
+#video_encrypt(video_track_number,key,kid,input_file)
+prueba=Video_ops.video_encrypt(2,key,kid,input_file)
+if (prueba[-1]) == 1:
+    print(prueba)
+else:
+    print(prueba)
+
+#DASH
+#archivo_de_prueba="/Users/javierbrines/Documents/Rakuten/video_packaging_platform/app/../output/KCXP3G/KCXP3G.mp4"
+#salida="/archivo/larguisimo/asiodhoia/salida.mpd"
+#prueba=Video_ops.video_dash(archivo_de_prueba)
+#if (prueba[-1]) == 1:
+#    print(prueba)
+#else:
+#    print(prueba)
