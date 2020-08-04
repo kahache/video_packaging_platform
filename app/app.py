@@ -12,6 +12,7 @@ import requests
 # from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy import *
 from sqlalchemy.sql import *
+import random
 
 # We declare variables
 storage_dir = os.getcwd() + "/../storage/"
@@ -25,7 +26,7 @@ uploaded_videos = Table('uploaded_videos', metadata, autoload=True)
 
 @app.route('/')
 def index():
-    result = engine.execute('select * from uploaded_videos where input_content_id = 1').first()
+    result = engine.execute('select * from uploaded_videos where input_content_id = 1').fetchall()
     print(result)
     return result
 
@@ -42,16 +43,17 @@ def success():
         f = request.files['file']
         f.save(f.filename)
         path = (os.getcwd() + "/" + f.filename)
-        input_content_origin=(storage_dir + f.filename)
+        input_content_origin = (storage_dir + f.filename)
         result = Video_ops.video_ingest(path)
         if (result[-1]) == 1:
-            print(result)
-            print(result[1])
             uploaded_videos = Table('uploaded_videos', metadata, autoload=True)
             con = engine.connect()
-            con.execute(uploaded_videos.insert(), input_content_origin=input_content_origin, status="Ingested", video_track_number=result[1])
+            con.execute(uploaded_videos.insert(), input_content_origin=input_content_origin, status="Ingested",
+                        video_track_number=result[1])
             input_content_id = \
-            con.execute(uploaded_videos.select(uploaded_videos.c.input_content_origin == input_content_origin)).fetchone()[0]
+                con.execute(
+                    uploaded_videos.select(uploaded_videos.c.input_content_origin == input_content_origin)).fetchone()[
+                    0]
             return render_template("success.html", name=f.filename, input_content_id=input_content_id)
         else:
             print(result)
@@ -61,6 +63,7 @@ def success():
 @app.route('/packaged_content', methods=['POST'])
 def package():
     if request.method == 'POST':
+        #añadir condición para evitar duplicados
         uploaded_videos = Table('uploaded_videos', metadata, autoload=True)
         con = engine.connect()
         print(request.is_json)
@@ -68,36 +71,60 @@ def package():
         input_content_id = uploaded_json['input_content_id']
         video_key = uploaded_json['key']
         kid = uploaded_json['kid']
-        # video_fragmentation
-        file_for_fragment = con.execute(uploaded_videos.select(uploaded_videos.c.input_content_id == input_content_id)).fetchone()[1]
-       # print(file_for_fragment)
+        # First file needs to be fragmented
+        file_for_fragment = \
+        con.execute(uploaded_videos.select(uploaded_videos.c.input_content_id == input_content_id)).fetchone()[1]
+        print(file_for_fragment)
         fragmentation = Video_ops.video_fragment(file_for_fragment)
         if (fragmentation[-1]) == 1:
+            packaged_content_id = random.randint(0, 100)
             result = con.execute(
                 uploaded_videos.update().where(uploaded_videos.c.input_content_id == input_content_id).values(
-                    status='Fragmented', output_file_path=fragmentation[1], video_key=video_key, kid=kid))
-        #   Database.update(table_name, "status", "Fragmented", str(input_content_id))
-        #  Database.update(table_name, "output_file_path", fragmentation[1], str(input_content_id))
-        # Database.update(table_name, "video_key", video_key, str(input_content_id))
-        # Database.update(table_name, "kid", kid, str(input_content_id))
-        # Now we encrypt
-        # video_track_number = (
-        #   Database.view_one_value("video_track_number", table_name, "input_content_id", input_content_id))
-        # file_to_encrypt = (
-        #   Database.view_one_value("output_file_path", table_name, "input_content_id", input_content_id))
-        # encryptation = Video_ops.video_encrypt(video_track_number, video_key, kid, file_to_encrypt)
-        # updatear BBDD
-        #    print(Database.view_one_value("input_content_id",table_name,"output_file_path",file))
-        # Database.view_all(table_name)
+                    status='Fragmented', output_file_path=fragmentation[1], video_key=video_key, kid=kid,
+                    packaged_content_id=packaged_content_id))
+            # Now we encrypt
+            video_track_number = \
+            con.execute(uploaded_videos.select(uploaded_videos.c.input_content_id == input_content_id)).fetchone()[2]
+            file_to_encrypt = \
+            con.execute(uploaded_videos.select(uploaded_videos.c.input_content_id == input_content_id)).fetchone()[4]
+            encryptation = Video_ops.video_encrypt(video_track_number, video_key, kid, file_to_encrypt)
+            if (encryptation[-1]) == 1:
+                result = con.execute(
+                    uploaded_videos.update().where(uploaded_videos.c.input_content_id == input_content_id).values(
+                        status='Encrypted', output_file_path=encryptation[1]))
+                # Now we get the DASH
+                dash_convert = Video_ops.video_dash(encryptation[1])
+                if (dash_convert[-1]) == 1:
+                    result = con.execute(uploaded_videos.update().where(uploaded_videos.c.input_content_id == input_content_id).values(status='Ready', url=dash_convert[1]))
+                    return render_template("success_packaged.html", url=dash_convert[1], packaged_content_id=packaged_content_id)
+                else:
+                    return ("ERROR - Check command line")
+            else:
+                return ("ERROR - Check command line")
         else:
-            print(file_for_fragment)
-            print (input_content_id)
-            #data = json.load(content)
-            #item = data.get('input_content_id')
-            #print(data)
+            return ("ERROR - Check command line")
 
-        return 'JSON posted'
 
+@app.route('/packaged_content_id/<int:packaged_content_id>', methods=['GET'])
+def consult_status(packaged_content_id):
+    if request.method == 'GET':
+        print("ESTE ES EL NUMERO:\n\n")
+        print(packaged_content_id)
+        uploaded_videos = Table('uploaded_videos', metadata, autoload=True)
+        con = engine.connect()
+        status = con.execute(uploaded_videos.select(uploaded_videos.c.packaged_content_id == packaged_content_id)).fetchone()[3]
+        url = con.execute(uploaded_videos.select(uploaded_videos.c.packaged_content_id == packaged_content_id)).fetchone()[8]
+        video_key = con.execute(uploaded_videos.select(uploaded_videos.c.packaged_content_id == packaged_content_id)).fetchone()[5]
+        kid = con.execute(uploaded_videos.select(uploaded_videos.c.packaged_content_id == packaged_content_id)).fetchone()[6]
+        print("RESULTADOS:\n\n")
+        print(status)
+        print(url)
+        if status == 'Ready':
+            data_set = {"url": [url], "key": [video_key], "kid": [kid]}
+            return(data_set)
+        else:
+            output = ("The packaged_content_id with number" + packaged_content_id + "is currently with status" + status )
+            return (output)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
