@@ -1,77 +1,34 @@
-import mysql.connector
+from sqlalchemy import create_engine, MetaData, Table
+from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+from flask_sqlalchemy import *
 
-class Database:
 
-    def __init__(db_name,table_name):
-        connection = mysql.connector.connect(**config)
-        cursor = connection.cursor()
-        cursor.execute("CREATE DATABASE IF NOT EXISTS {}".format(db_name))
-        cursor.execute("CREATE TABLE IF NOT EXISTS {}".format(table_name)+
-                        " (input_content_origin VARCHAR(255),input_content_id INT PRIMARY KEY AUTO_INCREMENT,video_track_number INT,status VARCHAR(20),output_file_path VARCHAR(255),video_key TEXT,kid TEXT,packaged_content_id INT UNIQUE,url VARCHAR(255))")
-        connection.close()
+def init_db():
+    metadata.create_all(bind=engine)
 
-    def insert_all(table_name,row_names,test_row):
-        connection = mysql.connector.connect(**config)
-        cursor = connection.cursor()
-        cursor.execute("INSERT INTO {}".format(table_name)+" ("+(', '.
-                        join(row_names))+") VALUES ("+str(test_row)[1:-1]+")")
-        connection.commit()
-        connection.close()
 
-    def insert_one_row(table_name,row_name,value):
-        connection = mysql.connector.connect(**config)
-        cursor = connection.cursor()
-        cursor.execute("INSERT INTO {}".format(table_name)+" ("+row_name+
-                        ") VALUES ('{}'".format(value)+")")
-        connection.commit()
-        connection.close()
+engine = create_engine('mysql://root:root@localhost:3306/video_files', convert_unicode=True, echo=True)
+metadata = MetaData()
+db_session = scoped_session(sessionmaker(autocommit=False,
+                                         autoflush=False,
+                                         bind=engine))
 
-    def view_all(table):
-        connection = mysql.connector.connect(**config)
-        cursor = connection.cursor()
-        cursor.execute("SELECT * FROM {}".format(table))
-        results=cursor.fetchall()
-        connection.close()
-        return results
 
-    def view_one_value(row_name1,table_name,row_name2,value):
-    #,input_content_id):
-        connection = mysql.connector.connect(**config)
-        cursor = connection.cursor()
-        cursor.execute("SELECT {}".format(row_name1)+
-                        " FROM {}".format(table_name)+
-                        " WHERE {}".format(row_name2)+
-                        " = '{}'".format(value))
-        row=cursor.fetchone()[0]
-        connection.close()
-        return row
+def insert(row_name, value1):
+    uploaded_videos = Table(uploaded_videos, metadata, autoload=True)
+    con = engine.connect()
+    con.execute(uploaded_videos.insert(), row_name=value1)
 
-    def delete_row(table_name,input_content_id):
-        connection = mysql.connector.connect(**config)
-        cursor = connection.cursor()
-        #https://youtu.be/jsuerKRsEyA
-        cursor.execute("DELETE FROM {}".format(table_name)+
-                        " WHERE input_content_id = {}".
-                        format(input_content_id))
-        connection.commit()
-        connection.close()
 
-    def update(table_name,column_name,value,input_content_id):
-        connection = mysql.connector.connect(**config)
-        cursor = connection.cursor()
-        cursor.execute("UPDATE "+table_name+" SET "+column_name+" = \""+value+"\" WHERE input_content_id = "+input_content_id)
-        connection.commit()
-        connection.close()
+# def view_db():
 
-#We define the table we're going to use
-db_name="video_files"
-table_name="movie_files"
-#We modify here the MySQL config parameters
-config = {
-    'user': 'root',
-    'password': 'root',
-    'host': '127.0.0.1',
-    'port': '3306',
-    'database': 'video_files'
-}
-Database.__init__(db_name,table_name)
+
+# def update_db():
+#   result = con.execute(uploaded_videos.update().where(uploaded_videos.c.input_content_id == 3).values(
+#      input_content_origin='prueba/archivoOJETE.mp4'))
+# print(result)
+
+# We define the table we're going to use
+db_name = "video_files"
+table_name = "updated_files"
