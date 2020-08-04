@@ -2,3 +2,6 @@ Flask
 mysql
 mysql-connector
 pyopenssl
+requests
+flask_sqlalchemy
+pymysql

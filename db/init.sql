@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS movie_files (
   url VARCHAR(255)
 );
 
-INSERT INTO movie_files
-  (input_content_origin, status)
-VALUES
-  ("/Users/javierbrines/Downloads/BigBuckBunny.mp4","Received");
+/* for further production environments, it should be interesting to have
+/* more tables and store data like date, time ingested; as more info from the
+/* video files: duration of the file, codecs, bitrate, container type,
+/* more metadata from the json... etc

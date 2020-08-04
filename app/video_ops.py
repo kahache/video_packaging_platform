@@ -51,8 +51,6 @@ class Video_ops:
         # stderr=subprocess.DEVNULL,shell=True)
 
     def video_fragment(input_file):
-        # PENSAR QUE PASA SI YA ESTÁ FRAGMENTADO (evitar duplicados)
-        output_file = "/Users/javierbrines/Downloads/prueba_fragmentado.mp4"
         output_code = ''.join(secrets.choice(string.ascii_uppercase +
                                              string.digits) for _ in range(6))
         output_file_path = output_dir + output_code + "/" + output_code + ".mp4"
@@ -89,7 +87,7 @@ class Video_ops:
         try:
             subprocess.check_output(encrypt_custom_command, shell=True)
             output = ("\nOK - File" + input_file +
-                      " has been encrypted with key:" + key + "kid:" + kid + "\n\n",
+                      " has been encrypted with key:" + key + "kid:" + kid,
                       output_file_path, 1)
             return output
         except subprocess.CalledProcessError as e:
@@ -97,8 +95,6 @@ class Video_ops:
                       input_file + "\n\n", e)
             return output
             raise
-        os.chdir(working_dir)
-        # subprocess.run(encrypt_custom_command,stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         os.chdir(working_dir)
 
     def video_dash(input_file):
@@ -108,8 +104,9 @@ class Video_ops:
                                path + "/dash/")
         try:
             subprocess.check_output(dash_custom_command, shell=True)
-            output = ("\nOK - File" + input_file + " has been processed into " +
-                      path + "/dash/stream.mpd" + "\n\n", 1)
+            dash_output = path + "/dash/stream.mpd"
+            output = ("OK - File" + input_file + " has been processed into " +
+                      dash_output, dash_output, 1)
             return output
         except subprocess.CalledProcessError as e:
             output = ("\nERROR - can't generate the mpd file" +
@@ -131,10 +128,10 @@ bin_dir = os.getcwd() + "/../bin"
 storage_dir = os.getcwd() + "/../storage/"
 file = "/Users/javierbrines/Documents/Rakuten/video_packaging_platform/BigBuckBunny.mp4"
 output_dir = os.getcwd() + "/../output/"
-# key="F1998AA4629FB47EFFE1A611659BD6A7"
-# kid="59C3308F57ADA6AC1D9D34200C484369"
-key = "hyN9IKGfWKdAwFaE5pm0qg"
-kid = "oW5AK5BW43HzbTSKpiu3SQ"
+
+#LOS BUENOS
+#key = "hyN9IKGfWKdAwFaE5pm0qg"
+#kid = "oW5AK5BW43HzbTSKpiu3SQ"
 
 # video_fragmentation
 # input_content_id=18
@@ -157,7 +154,7 @@ kid = "oW5AK5BW43HzbTSKpiu3SQ"
 #input_file = "/Users/javierbrines/Documents/Rakuten/video_packaging_platform/app/../output/KCXP3G/KCXP3G.mp4"
 # print(Database.view())
 # fragment("origin_file_path",3)
-# video_encrypt(video_track_number,key,kid,input_file)
+#video_encrypt(video_track_number,key,kid,input_file)
 #prueba = Video_ops.video_encrypt(2, key, kid, input_file)
 #if (prueba[-1]) == 1:
 #    print(prueba)

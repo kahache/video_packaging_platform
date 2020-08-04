@@ -26,9 +26,7 @@ uploaded_videos = Table('uploaded_videos', metadata, autoload=True)
 
 @app.route('/')
 def index():
-    result = engine.execute('select * from uploaded_videos where input_content_id = 1').fetchall()
-    print(result)
-    return result
+    return render_template("index.html")
 
 
 @app.route('/upload_input_content')
