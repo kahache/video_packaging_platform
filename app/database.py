@@ -1,3 +1,16 @@
+__author__ = "The One & Only Javi"
+__version__ = "1.0.0"
+__start_date__ = "25th July 2020"
+__end_date__ = "3rd August 2020"
+__maintainer__ = "me"
+__email__ = "little_kh@hotmail.com"
+__requirements__ = "SQL-Alchemy, MySQL, Flask-SQLAlchemy"
+__status__ = "Production"
+__description__ = """
+This is the Database connection script.
+It will generate the connections between our Flask APP and the MySQL database
+"""
+
 from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -14,21 +27,3 @@ db_session = scoped_session(sessionmaker(autocommit=False,
                                          autoflush=False,
                                          bind=engine))
 
-
-def insert(row_name, value1):
-    uploaded_videos = Table(uploaded_videos, metadata, autoload=True)
-    con = engine.connect()
-    con.execute(uploaded_videos.insert(), row_name=value1)
-
-
-# def view_db():
-
-
-# def update_db():
-#   result = con.execute(uploaded_videos.update().where(uploaded_videos.c.input_content_id == 3).values(
-#      input_content_origin='prueba/archivoOJETE.mp4'))
-# print(result)
-
-# We define the table we're going to use
-db_name = "video_files"
-table_name = "updated_files"
