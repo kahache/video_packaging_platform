@@ -1,3 +1,18 @@
+
+__author__ = "The One & Only Javi"
+__version__ = "1.0.0"
+__start_date__ = "25th July 2020"
+__end_date__ = "5th August 2020"
+__maintainer__ = "me"
+__email__ = "little_kh@hotmail.com"
+__requirements__ = "Bento4 tools, subprocess"
+__status__ = "Production"
+__description__ = """
+This is the Video Operations module.
+It can extract metadata, fragment, encrypt and transcode into MPEG-DASH
+It's a dumb module, it doesn't work with databases. It only needs the Bento4 binaries.
+"""
+
 import os
 import subprocess
 import sys
@@ -9,11 +24,12 @@ import secrets
 import base64
 
 
-# further this exercise, we should consider a file normalisation function
-class Video_ops:
 
+class Video_ops:
+    """ Contains individual methods, in order to process a video file """
     def video_ingest(input_file):
         os.chdir(bin_dir)
+        """ Export the Video metadata into a JSON """
         try:
             subprocess.check_output("./mp4info {} --format json > out.json".
                                     format(input_file), shell=True)
@@ -22,6 +38,7 @@ class Video_ops:
                       + '\n' + '\n', e)
             return output
             raise
+        """ Check the metadata and search for video tracks """
         with open('out.json') as f:
             data = json.load(f)
             items = data.get('tracks')
@@ -31,6 +48,7 @@ class Video_ops:
                     video_found_flag = 1
                     video_track_number = (item.get('id'))
                     os.chdir(working_dir)
+                    """ When a video track is found, return the Track ID and put file into storage """
                     try:
                         subprocess.check_output("mv {}".format(input_file) + " {}".
                                                 format(storage_dir), shell=True)
@@ -51,12 +69,19 @@ class Video_ops:
         # stderr=subprocess.DEVNULL,shell=True)
 
     def video_fragment(input_file):
+        """
+        Fragments the video. Step needed for future processes.
+        It will also rename + move the file into storage/folder
+        with encrypted name.
+        """
+        # First, generation of encrypted folder/file name
         output_code = ''.join(secrets.choice(string.ascii_uppercase +
                                              string.digits) for _ in range(6))
         output_file_path = output_dir + output_code + "/" + output_code + ".mp4"
         os.chdir(output_dir)
         os.mkdir(output_code, mode=0o0755)
         os.chdir(bin_dir)
+        """ Then the video fragmentation process uses its output as name encryption """
         fragment_custom_command = ("./mp4fragment " + str(input_file) + " " +
                                    output_file_path)
         try:
@@ -73,12 +98,18 @@ class Video_ops:
         os.chdir(working_dir)
 
     def video_encrypt(video_track_number, key, kid, input_file):
+        """
+        It encrypts the video track of a video file, using AES CBCS encryption
+        with a KEY and KID given.
+        """
+        # First, translation of the keys into Base64 + naming of the output
         os.chdir(bin_dir)
         string1 = (key + "==")
         video_key = (base64.b64decode(string1).hex())
         string2 = (kid + "==")
         video_kid = (base64.b64decode(string2).hex())
         output_file_path = (os.path.splitext(input_file)[0]) + "_enc.mp4"
+        # Then, encryption is launched
         encrypt_custom_command = ("./mp4encrypt --method MPEG-CBCS --key " +
                                   str(video_track_number) + ":" + video_key +
                                   ":random " + "--property " +
@@ -98,6 +129,7 @@ class Video_ops:
         os.chdir(working_dir)
 
     def video_dash(input_file):
+        """ Simple transcoding from the input video into a MPEG-DASH output """
         os.chdir(bin_dir)
         path, file = os.path.split(input_file)
         dash_custom_command = ("./mp4dash " + input_file + " -o " +
@@ -116,56 +148,11 @@ class Video_ops:
         os.chdir(working_dir)
 
 
-# We define the table we're going to use
-db_name = "video_files"
-table_name = "movie_files"
-# Database.__init__(db_name,table_name)
-
-# print(Database.view())
-# video_track_number()
+# We define the folders as variables
 working_dir = os.getcwd()
 bin_dir = os.getcwd() + "/../bin"
 storage_dir = os.getcwd() + "/../storage/"
-file = "/Users/javierbrines/Documents/Rakuten/video_packaging_platform/BigBuckBunny.mp4"
 output_dir = os.getcwd() + "/../output/"
 
-#LOS BUENOS
-#key = "hyN9IKGfWKdAwFaE5pm0qg"
-#kid = "oW5AK5BW43HzbTSKpiu3SQ"
-
-# video_fragmentation
-# input_content_id=18
-# file_for_fragment=(Database.view_one_value("input_content_origin",table_name,"input_content_id",input_content_id))
-# print(file_for_fragment)
-# prueba=video_fragment(file_for_fragment)
-# if (prueba[-1]) == 1:
-#    Database.update(table_name,"status","Fragmented",str(input_content_id))
-#    AÑADIR PATH SI CAMBIA?
-#    print(Database.view_one_value("input_content_id",table_name,"input_content_origin",file))
-# else:
-#    print(prueba)
-
-# input_content_id=10;
-# video_track_number=(Database.view_one_value("video_track_number",table_name,"input_content_id",input_content_id))
-# file_to_encrypt=(Database.view_one_value("output_file_path",table_name,"input_content_id",input_content_id))
-# video_encrypt(video_track_number,key,kid,file_to_encrypt)
-
-
-#input_file = "/Users/javierbrines/Documents/Rakuten/video_packaging_platform/app/../output/KCXP3G/KCXP3G.mp4"
-# print(Database.view())
-# fragment("origin_file_path",3)
-#video_encrypt(video_track_number,key,kid,input_file)
-#prueba = Video_ops.video_encrypt(2, key, kid, input_file)
-#if (prueba[-1]) == 1:
-#    print(prueba)
-#else:
-#    print(prueba)
-
-# DASH
-# archivo_de_prueba="/Users/javierbrines/Documents/Rakuten/video_packaging_platform/app/../output/KCXP3G/KCXP3G.mp4"
-# salida="/archivo/larguisimo/asiodhoia/salida.mpd"
-# prueba=Video_ops.video_dash(archivo_de_prueba)
-# if (prueba[-1]) == 1:
-#    print(prueba)
-# else:
-#    print(prueba)
+# For the future:
+# Further this exercise, we should consider a file normalisation function
