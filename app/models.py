@@ -1,3 +1,16 @@
+__author__ = "The One & Only Javi"
+__version__ = "1.0.0"
+__start_date__ = "25th July 2020"
+__end_date__ = "3rd August 2020"
+__maintainer__ = "me"
+__email__ = "little_kh@hotmail.com"
+__requirements__ = "SQL-Alchemy, MySQL, Flask-SQLAlchemy, database script"
+__status__ = "Production"
+__description__ = """
+This is the Database models script. Very important as it will
+connect the database and map it with our model for this App
+"""
+
 from sqlalchemy import *
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import *
@@ -20,8 +33,7 @@ class VideosDB(object):
         self.url = url
 
     def __repr__(self):
-        return '<VideosDB %r>' % (self.input_content_origin)
-        # REVIEW no me queda claro
+        return '<VideosDB %r>' % (self.input_content_id)
 
 
 uploaded_videos = Table('uploaded_videos', metadata,
