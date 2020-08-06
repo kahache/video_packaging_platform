@@ -14,17 +14,13 @@ import unittest
 class test_video_ops(unittest.TestCase):
 
     def setUp(self):
-        #
-        # CREAR DIRECTORIOS DE PRUEBA
-        #
-        self.bin_dir = (os.getcwd() + "/../bin")
         self.working_dir = os.getcwd()
+        self.bin_dir = os.getcwd() + "/../bin"
         self.storage_dir = os.getcwd() + "/../storage/"
         self.input_file1 = os.getcwd() + "/TEST_VIDEOS/BigBuckBunny.mp4"
         self.input_file2 = os.getcwd() + "/TEST_VIDEOS/BigBuckBunny_10sec.mp4"
         self.input_file3 = os.getcwd() + "/TEST_VIDEOS/BigBuckBunny_10sec_frag.mp4"
         self.input_file4 = os.getcwd() + "/TEST_VIDEOS/BigBuckBunny_10sec_frag.mp4"
-        # #4 = os.getcwd() + ""
         self.output_dir = os.getcwd() + "/../output/"
         self.key = "hyN9IKGfWKdAwFaE5pm0qg"
         self.kid = "oW5AK5BW43HzbTSKpiu3SQ"
@@ -81,13 +77,14 @@ class test_video_ops(unittest.TestCase):
             # subprocess.check_output(fragment_custom_command, shell=True)
             output = ("OK - File " + str(self.input_file2) + " has been fragmented and is ready to encrypt\n\n",
                       str(output_file_path), 1)
+            os.chdir(self.working_dir)
             return output
         except subprocess.CalledProcessError as e:
             output = ("\nERROR - can't fragment the video file" +
                       self.input_file2 + "\n\n", e)
+            os.chdir(self.working_dir)
             return output
             raise
-        os.chdir(working_dir)
 
     def test_video_encrypt(self):
         os.chdir(self.bin_dir)
@@ -106,13 +103,14 @@ class test_video_ops(unittest.TestCase):
             output = ("\nOK - File" + str(self.input_file3) +
                       " has been encrypted with key:" + self.key + "kid:" + self.kid,
                       output_file_path, 1)
+            os.chdir(self.working_dir)
             return output
         except subprocess.CalledProcessError as e:
             output = ("\nERROR - can't encrypt the video file" +
                       self.input_file3 + "\n\n", e)
+            os.chdir(self.working_dir)
             return output
             raise
-        os.chdir(working_dir)
 
     def test_video_dash(self):
         os.chdir(self.bin_dir)
@@ -124,14 +122,15 @@ class test_video_ops(unittest.TestCase):
             dash_output = path + "/dash/stream.mpd"
             output = ("OK - File" + self.input_file4 + " has been processed into " +
                       dash_output, dash_output, 1)
+            os.chdir(self.working_dir)
             return output
         except subprocess.CalledProcessError as e:
             output = ("\nERROR - can't generate the mpd file" +
                       self.input_file4 + "\n\n", e)
+            os.chdir(self.working_dir)
             return output
             raise
-        os.chdir(self.working_dir)
-
 
 if __name__ == '__main__':
-    unittest.main()
+        unittest.main()
+
