@@ -31,19 +31,6 @@ import random
 import unittest
 from sqlalchemy import create_engine, MetaData, Table
 
-
-#
-# @app.route('/')
-# def index():
-#     """Main API documentation as main Webpage"""
-#     return redirect("https://app.swaggerhub.com/apis-docs/kahache/VideoPackagingPlatform/1.0.0", code=302)
-#
-#
-# @app.route('/upload_input_content')
-# def upload():
-#     """Main website where users upload the video"""
-#     return render_template("file_upload_form.html")
-
 class test_functions(unittest.TestCase):
     def setUp(self):
         # We declare variables
@@ -56,6 +43,7 @@ class test_functions(unittest.TestCase):
         self.json = {"input_content_id": "1", "key": "hyN9IKGfWKdAwFaE5pm0qg", "kid": "oW5AK5BW43HzbTSKpiu3SQ"}
         # We define the table we're going to use
         self.test_uploaded_videos = Table('test_uploaded_videos', metadata, autoload=True)
+        self.input_content_id = 1
         self.engine = create_engine('mysql://root:root@localhost:3306/test_video_files', convert_unicode=True,
                                     echo=True)
         self.status = "Fragmented"
@@ -88,6 +76,7 @@ class test_functions(unittest.TestCase):
 
     def test_package(self):
         # Consider for the future if we need to add operations to avoid duplicates
+        packaged_content_id = 1
         test_uploaded_videos = Table('test_uploaded_videos', metadata, autoload=True)
         con = engine.connect()
         uploaded_json = self.json
@@ -98,7 +87,6 @@ class test_functions(unittest.TestCase):
         file_for_fragment = \
             con.execute(
                 test_uploaded_videos.select(test_uploaded_videos.c.input_content_id == input_content_id)).fetchone()[1]
-        print(file_for_fragment)
         file_for_fragment_query = subprocess.check_output(
             "mysql -u root -proot -D test_video_files -s -N -e \"SELECT input_content_origin FROM test_uploaded_videos WHERE input_content_id = \'{}\'".format(
                 input_content_id) + " LIMIT 1\"", shell=True)
@@ -110,7 +98,6 @@ class test_functions(unittest.TestCase):
         """Return includes a '1' at the end if successful"""
         if (fragmentation[-1]) == 1:
             """As successful, we need to update the SQL database"""
-            packaged_content_id = random.randint(0, 100)
             result = con.execute(
                 test_uploaded_videos.update().where(test_uploaded_videos.c.input_content_id == input_content_id).values(
                     status='Fragmented', output_file_path=fragmentation[1], video_key=video_key, kid=kid,
@@ -129,8 +116,9 @@ class test_functions(unittest.TestCase):
                 "mysql -u root -proot -D test_video_files -s -N -e \"SELECT kid FROM test_uploaded_videos WHERE input_content_id = \'{}\'\"".format(
                     input_content_id), shell=True)
             # TEST - confirm values in DB are the ones we expected
+            output_file_path = fragmentation[1]
             self.assertEqual(self.status, status_query.decode('ascii').strip())
-            self.assertEqual(fragmentation[1], output_file_path_query.decode('ascii').strip())
+            self.assertEqual(output_file_path, output_file_path_query.decode('ascii').strip())
             self.assertEqual(video_key, video_key_query.decode('ascii').strip())
             self.assertEqual(kid, kid_query.decode('ascii').strip())
             """Once updated, we extract info from database and we launch the encryption """
@@ -145,64 +133,84 @@ class test_functions(unittest.TestCase):
             file_to_encrypt = \
                 con.execute(test_uploaded_videos.select(test_uploaded_videos.c.input_content_id == input_content_id)).fetchone()[
                     4]
-            print(file_to_encrypt)
-        #     encryptation = Video_ops.video_encrypt(video_track_number, video_key, kid, file_to_encrypt)
-        #     """Return includes a '1' at the end if successful"""
-        #     if (encryptation[-1]) == 1:
-        #         """As successful, we need to update the SQL database"""
-        #         result = con.execute(
-        #             uploaded_videos.update().where(uploaded_videos.c.input_content_id == input_content_id).values(
-        #                 status='Encrypted', output_file_path=encryptation[1]))
-        #         """Once updated, we finally transcode into MPEG-Dash """
-        #         dash_convert = Video_ops.video_dash(encryptation[1])
-        #         """Return includes a '1' at the end if successful"""
-        #         if (dash_convert[-1]) == 1:
-        #             result = con.execute(
-        #                 uploaded_videos.update().where(uploaded_videos.c.input_content_id == input_content_id).values(
-        #                     status='Ready', url=dash_convert[1]))
-        #             return render_template("success_packaged.html", url=dash_convert[1],
-        #                                    packaged_content_id=packaged_content_id)
-        #         else:
-        #             return ("ERROR - Check command line")
-        #     else:
-        #         return ("ERROR - Check command line")
-        # else:
-        #     return ("ERROR - Check command line")
+            self.assertEqual(output_file_path, file_to_encrypt)
+            output_file_path2=(str(output_file_path)+"_encrypted")
+            encryptation = ("\nOK - File" + self.input_file1 + " has been encrypted with key:" + video_key + "kid:" + \
+                           kid, output_file_path2, 1)
+            """Return includes a '1' at the end if successful"""
+            if (encryptation[-1]) == 1:
+                """As successful, we need to update the SQL database"""
+                result = con.execute(
+                    test_uploaded_videos.update().where(test_uploaded_videos.c.input_content_id == input_content_id).values(
+                        status='Encrypted', output_file_path=encryptation[1]))
+                status_query = subprocess.check_output(
+                    "mysql -u root -proot -D test_video_files -s -N -e \"SELECT status FROM test_uploaded_videos WHERE input_content_id = \'{}\'\"".format(
+                        input_content_id), shell=True)
+                self.assertEqual("Encrypted", status_query.decode('ascii').strip())
+                """Once updated, we finally transcode into MPEG-Dash """
+                dash_output=(output_file_path2 + "/dash/stream.mpd")
+                dash_convert = ("OK - File" + output_file_path2 + " has been processed into " +
+                      dash_output, dash_output, 1)
+                """Return includes a '1' at the end if successful"""
+                if (dash_convert[-1]) == 1:
+                    result = con.execute(test_uploaded_videos.update().where(test_uploaded_videos.c.input_content_id == input_content_id).values(status='Ready', url=dash_convert[1]))
+                    url_query = subprocess.check_output(
+                        "mysql -u root -proot -D test_video_files -s -N -e \"SELECT url FROM test_uploaded_videos WHERE input_content_id = \'{}\'\"".format(
+                            input_content_id), shell=True)
+                    url=dash_convert[1]
+                    self.assertEqual(url, url_query.decode('ascii').strip())
+                    status_query = subprocess.check_output(
+                        "mysql -u root -proot -D test_video_files -s -N -e \"SELECT status FROM test_uploaded_videos WHERE input_content_id = \'{}\'\"".format(
+                            input_content_id), shell=True)
+                    self.assertEqual("Ready", status_query.decode('ascii').strip())
+                else:
+                     return ("ERROR - Check command line")
+            else:
+                 return ("ERROR - Check command line")
+        else:
+             return ("ERROR - Check command line")
 
-    # def consult_status(packaged_content_id):
-    #     """
-    #     This method is called for big video files, to check the status of the operations.
-    #     As the video files' operations update the Database with the status of the file, by knowing that status
-    #     value we can know at which stage point of the process we are
-    #     """
-    #     if request.method == 'GET':
-    #         """First we generate variables by consulting the database"""
-    #         uploaded_videos = Table('uploaded_videos', metadata, autoload=True)
-    #         con = engine.connect()
-    #         status = \
-    #         con.execute(uploaded_videos.select(uploaded_videos.c.packaged_content_id == packaged_content_id)).fetchone()[3]
-    #         url = \
-    #         con.execute(uploaded_videos.select(uploaded_videos.c.packaged_content_id == packaged_content_id)).fetchone()[8]
-    #         video_key = \
-    #         con.execute(uploaded_videos.select(uploaded_videos.c.packaged_content_id == packaged_content_id)).fetchone()[5]
-    #         kid = \
-    #         con.execute(uploaded_videos.select(uploaded_videos.c.packaged_content_id == packaged_content_id)).fetchone()[6]
-    #         """
-    #         If the status is 'Ready', process should be finished.
-    #         In our code, when it's finished it should have generated a URL value.
-    #         If it's not ready, we'll return the current point of the operations.
-    #         """
-    #         if status == 'Ready':
-    #             data_set = {"url": [url], "key": [video_key], "kid": [kid]}
-    #             return (data_set)
-    #         else:
-    #             output = ("The packaged_content_id with number" + packaged_content_id + "is currently with status" + status)
-    #             return (output)
+    def test_consult_status(self):
+        packaged_content_id = 1
+        test_uploaded_videos = Table('test_uploaded_videos', metadata, autoload=True)
+        con = engine.connect()
+        status = \
+        con.execute(test_uploaded_videos.select(test_uploaded_videos.c.packaged_content_id == packaged_content_id)).fetchone()[3]
+        url = \
+        con.execute(test_uploaded_videos.select(test_uploaded_videos.c.packaged_content_id == packaged_content_id)).fetchone()[8]
+        video_key = \
+        con.execute(test_uploaded_videos.select(test_uploaded_videos.c.packaged_content_id == packaged_content_id)).fetchone()[5]
+        kid = \
+        con.execute(test_uploaded_videos.select(test_uploaded_videos.c.packaged_content_id == packaged_content_id)).fetchone()[6]
+        status_query = subprocess.check_output(
+                 "mysql -u root -proot -D test_video_files -s -N -e \"SELECT status FROM test_uploaded_videos WHERE input_content_id = \'{}\'\"".format(
+                     self.input_content_id), shell=True)
+        url_query = subprocess.check_output(
+                 "mysql -u root -proot -D test_video_files -s -N -e \"SELECT url FROM test_uploaded_videos WHERE input_content_id = \'{}\'\"".format(
+                     self.input_content_id), shell=True)
+        video_key_query = subprocess.check_output(
+                 "mysql -u root -proot -D test_video_files -s -N -e \"SELECT video_key FROM test_uploaded_videos WHERE input_content_id = \'{}\'\"".format(
+                     self.input_content_id), shell=True)
+        kid_query = subprocess.check_output(
+                 "mysql -u root -proot -D test_video_files -s -N -e \"SELECT kid FROM test_uploaded_videos WHERE input_content_id = \'{}\'\"".format(
+                     self.input_content_id), shell=True)
+        self.assertEqual(status, status_query.decode('ascii').strip())
+        self.assertEqual(url, url_query.decode('ascii').strip())
+        self.assertEqual(video_key, video_key_query.decode('ascii').strip())
+        self.assertEqual(kid, kid_query.decode('ascii').strip())
+        if status == 'Ready':
+            data_set = {"url": [url], "key": [video_key], "kid": [kid]}
+            data_set_from_queries = {"url": [url_query.decode('ascii').strip()], "key": [video_key_query.decode('ascii').strip()], "kid": [kid_query.decode('ascii').strip()]}
+            self.assertEqual(data_set, data_set_from_queries)
+        else:
+            output = ("The packaged_content_id with number" + packaged_content_id + "is currently with status" + status)
+            return (output)
 
-    # """ Flask App main launcher """
-    # if __name__ == '__main__':
-    #     app.run(host='0.0.0.0')
-
-
+    def test_index(self):
+        swagger_url = "https://app.swaggerhub.com/apis-docs/kahache/VideoPackagingPlatform/1.0.0"
+        ping_command = ("curl -I \"{}\"".format(swagger_url) + " 2>&1 | awk '/HTTP\// {print $2}'")
+        check_alive = subprocess.check_output(ping_command, shell=True)
+        self.assertEqual("200", check_alive.decode('ascii').strip())
+        
 if __name__ == '__main__':
     unittest.main()
