@@ -46,7 +46,7 @@ pip3 install -r app/requirements.txt
 9 rows in set (0,00 sec)
 ```
 
-![alt text] (https://github.com/kahache/video_packaging_platform/blob/master/Video%20Operations%20logic.jpg?raw=true "Prueba")
+![] (images/Video%20Operations%20logic.jpg)
 
 ## Running the tests
 
