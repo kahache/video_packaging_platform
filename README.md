@@ -29,6 +29,25 @@ pip3 install -r app/requirements.txt
 
 * WORK IN PROGRESS *
 
+```
++----------------------+--------------+------+-----+---------+----------------+
+| Field                | Type         | Null | Key | Default | Extra          |
++----------------------+--------------+------+-----+---------+----------------+
+| input_content_id     | int(11)      | NO   | PRI | NULL    | auto_increment |
+| input_content_origin | varchar(255) | YES  |     | NULL    |                |
+| video_track_number   | int(11)      | YES  |     | NULL    |                |
+| status               | varchar(255) | YES  |     | NULL    |                |
+| output_file_path     | varchar(255) | YES  |     | NULL    |                |
+| video_key            | varchar(255) | YES  |     | NULL    |                |
+| kid                  | varchar(255) | YES  |     | NULL    |                |
+| packaged_content_id  | int(11)      | YES  | UNI | NULL    |                |
+| url                  | varchar(255) | YES  |     | NULL    |                |
++----------------------+--------------+------+-----+---------+----------------+
+9 rows in set (0,00 sec)
+```
+
+![alt text] (https://github.com/kahache/video_packaging_platform/blob/master/Video%20Operations%20logic.jpg?raw=true "Prueba")
+
 ## Running the tests
 
 To run the tests, get with Linux/UNIX terminal into the /tests/ forlder and run:
