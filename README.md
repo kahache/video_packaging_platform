@@ -46,7 +46,7 @@ pip3 install -r app/requirements.txt
 9 rows in set (0,00 sec)
 ```
 
-![] (images/Video%20Operations%20logic.jpg)
+![](images/VideoOperationsLogic.png)
 
 ## Running the tests
 
