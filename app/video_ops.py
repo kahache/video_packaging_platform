@@ -86,7 +86,7 @@ class Video_ops:
                                    output_file_path)
         try:
             subprocess.check_output(fragment_custom_command, shell=True)
-            output = ("OK - File " + file +
+            output = ("OK - File " + input_file +
                       " has been fragmented and is ready to encrypt\n\n",
                       output_file_path, 1)
             return output

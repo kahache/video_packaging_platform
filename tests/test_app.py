@@ -211,6 +211,6 @@ class test_functions(unittest.TestCase):
         ping_command = ("curl -I \"{}\"".format(swagger_url) + " 2>&1 | awk '/HTTP\// {print $2}'")
         check_alive = subprocess.check_output(ping_command, shell=True)
         self.assertEqual("200", check_alive.decode('ascii').strip())
-        
+
 if __name__ == '__main__':
     unittest.main()
