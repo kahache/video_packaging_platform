@@ -1,11 +1,13 @@
 FROM python:3.6
 
+COPY . /service/
+
+RUN mkdir /service/storage /service/output
+
+RUN pip3 install -r /service/app/requirements.txt
+
+WORKDIR /service/app
+
 EXPOSE 5000
 
-WORKDIR /app
-
-COPY requirements.txt /app
-RUN pip3 install -r requirements.txt
-
-COPY app.py /app
-CMD python app.py
+CMD python3 app.py
