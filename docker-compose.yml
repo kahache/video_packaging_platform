@@ -1,17 +1,18 @@
 version: "3"
 services:
   app:
-    build: ./app
+    build: .
     links:
-      - db
+      - "db"
     ports:
       - "5000:5000"
-
   db:
     image: mysql:5.7
     ports:
       - "32000:3306"
     environment:
       MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: video_files
+      MYSQL_USER: root
     volumes:
-      - ./db:/docker-entrypoint-initdb.d/:ro
+      - ./db:/docker-entrypoint-initdb.d/
