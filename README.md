@@ -31,8 +31,6 @@ Docker
 
 ### How does it work
 
-* WORK IN PROGRESS *
-
 This platform opens up a simple web file loader. You can insert files and they will be processed. 
 Once you have the files packaged, you can open the files with VLC Media Player or FFPlay. You should be able to hear the audio but you shouldn't be able to see the video.
 
@@ -109,10 +107,72 @@ For the docker, the database is declared in **/db/db.init.sql**
 
 * The operations logic, mixing Video and Database 
 
+This is quite simple. The first endpoint is what happens when we click on "upload" and we sent the file into the system:
+
+![](images/video_received.png)
+
+The second endpoint is called with a JSON, for examle:
+```
+POST​ /packaged_content {
+“input_content_id”: 1,
+“key”: “hyN9IKGfWKdAwFaE5pm0qg”,
+“kid”: “oW5AK5BW43HzbTSKpiu3SQ” }
+```
+So everything starts to run in the background with this logic:
+
+![](images/VideoOperationsLogic.png)
+
+Quite simple.
+
+The third endpoint doesn't need explanation, it will just do a Database query and return the output as a JSON.
+
+For example, we call it like:
+```
+GET​ /packaged_content/55
+```
+
+And will receive an output like:
+
+
+
+
+
+
 * The Flask API
 
 This simply redirects the endpoints of the API with the templates and the operations. It's the main file, which gets executed automatically and starts the service at http://0.0.0.0:5000
 
+## Guide to validate playback correctness of the content packaged. 
+
+When we have the output, I've added an extra endpoint to start a file browser service with different point (this should be user access, not API access).
+```
+GET http://0.0.0.0:5000 
+```
+So we can call the last method of the API to run this service. Once ran, we should be able to browse the file from the browser opening http://0.0.0.0:8080/videos
+
+Once it's open, we can open the video directly with [VLC Media Player](https://www.videolan.org/vlc/index.es.html) or with [FFPlay](https://ffmpeg.org/ffplay.html).
+
+If we open the video, we shouldn't be able to see the video track as it's encrypted. This has been tested with both softwares.
+
+In order to further testing, we should consider using specialized player, such us:
+·Test Player from [DASH IF](https://github.com/Dash-Industry-Forum/dash.js/blob/development/samples/drm/clearkey.html)
+·Test Player from private Video services such as 
+[Bitmovin](https://bitmovin.com/demos/drm), info [here](https://bitmovin.com/docs/player/tutorials/how-to-play-mpeg-cenc-clearkey-content)
+[Wowza](https://www.wowza.com/testplayers)
+And so on. Or for example it seems there are some players online:
+Shaka Player
+[JW Player](https://www.jwplayer.com/developers/stream-tester/)
+
+IMPORTANT: Please notice none of this players have been tested.
+
+# How would I modify/extend the service so we achieve multi bitrate resolution? 
+
+There are some solutions. 
+
+The first one is to process the video with [FFMpeg](https://ffmpeg.org), the infamous video tool that lets you do (almost) everything. One option can be to transcode the video file and use a multibitrate output. However, FFMpeg doesn't allow us to encrypt the video with ClearKey. This has been tested and I've already did in the past video with different bitrates. So if we avoid the encryption process, this can be a real solution.
+
+The second one, (this hasn't been tested) and seems to be the real how-to, is to work with [MP4Box](https://gpac.wp.imt.fr). It seems this software allows us to combine with FFMpeg and it lets us to encrypt the files.
+More info about this method on these 2 links from the guys from Streamroot, first [here](https://blog.streamroot.io/encode-multi-bitrate-videos-mpeg-dash-mse-based-media-players/) and [here](https://blog.streamroot.io/encode-multi-bitrate-videos-mpeg-dash-mse-based-media-players-22/)
 
 ## Running the tests
 
@@ -121,6 +181,8 @@ To run the tests, get with Linux/UNIX terminal into the /tests/ forlder and run:
 bash run_tests.sh
 ```
 There you'll find a dialog box where you can choose the different tests to run. It's highly recommended to first download the test videos otherwise it can give errors. Feel free to check out the code and change variables or situations you'd like to test.
+
+
 
 ## Files included in this package
 
