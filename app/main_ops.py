@@ -26,6 +26,7 @@ from main_ops import *
 from sqlalchemy import *
 from sqlalchemy.sql import *
 from typing import List, Dict
+from datetime import datetime
 
 # We declare variables
 storage_dir = os.getcwd() + "/../storage/"
@@ -39,6 +40,8 @@ class Main_ops:
 
     def success():
         """First, move file into storage and generate outputs"""
+        output_string = ("\n\n" + datetime.now().strftime("%d/%m/%Y %H:%M:%S") + " - File received")
+        print(output_string, file=sys.stdout)
         app.config['UPLOAD_FOLDER'] = storage_dir
         f = request.files['file']
         f.save(f.filename)
@@ -49,6 +52,9 @@ class Main_ops:
         """Return includes a '1' at the end if successful"""
         if (result[-1]) == 1:
             """As successful, we need to update the SQL database"""
+            output_string = ("\n\n" + datetime.now().strftime(
+                "%d/%m/%Y %H:%M:%S") + " - File analyzed, storing values into DB")
+            print(output_string, file=sys.stdout)
             uploaded_videos = Table('uploaded_videos', metadata, autoload=True)
             con = engine.connect()
             con.execute(uploaded_videos.insert(), input_content_origin=input_content_origin, status="Ingested",
@@ -57,6 +63,9 @@ class Main_ops:
                 con.execute(
                     uploaded_videos.select(uploaded_videos.c.input_content_origin == input_content_origin)).fetchone()[
                     0]
+            output_string = ("\n\n" + datetime.now().strftime(
+                "%d/%m/%Y %H:%M:%S") + " - Redirecting to output website with the result")
+            print(output_string, file=sys.stdout)
             output = (1,f.filename,input_content_id)
             return output
         else:
@@ -70,6 +79,8 @@ class Main_ops:
         """
         # Consider for the future if we need to add operations to avoid duplicates
         """First extract metadata from JSON into variables """
+        output_string = ("\n\n" + datetime.now().strftime("%d/%m/%Y %H:%M:%S") + " - Starting to package")
+        print(output_string, file=sys.stdout)
         uploaded_videos = Table('uploaded_videos', metadata, autoload=True)
         con = engine.connect()
         print(request.is_json)
@@ -81,6 +92,8 @@ class Main_ops:
         file_for_fragment = \
             con.execute(uploaded_videos.select(uploaded_videos.c.input_content_id == input_content_id)).fetchone()[1]
         print(file_for_fragment)
+        output_string = ("\n\n" + datetime.now().strftime("%d/%m/%Y %H:%M:%S") + " - Starting video fragmentation")
+        print(output_string, file=sys.stdout)
         fragmentation = Video_ops.video_fragment(file_for_fragment)
         """Return includes a '1' at the end if successful"""
         if (fragmentation[-1]) == 1:
@@ -91,7 +104,9 @@ class Main_ops:
                 uploaded_videos.update().where(uploaded_videos.c.input_content_id == input_content_id).values(
                     status='Fragmented', output_file_path=fragmentation[1], video_key=video_key, kid=kid,
                     packaged_content_id=packaged_content_id))
-            print("\n\n\nThe file has started to be processed with the following packaged_content_id:", file=sys.stdout)
+            output_string = ("\n\n" + datetime.now().strftime(
+                "%d/%m/%Y %H:%M:%S") + " - Starting video encryptation with the following packaged_content_id:")
+            print(output_string, file=sys.stdout)
             print(packaged_content_id, file=sys.stdout)
             """Once updated, we extract info from database and we launch the encryption """
             video_track_number = \
@@ -104,6 +119,9 @@ class Main_ops:
             """Return includes a '1' at the end if successful"""
             if (encryptation[-1]) == 1:
                 """As successful, we need to update the SQL database"""
+                output_string = (
+                            "\n\n" + datetime.now().strftime("%d/%m/%Y %H:%M:%S") + " - Starting MPEG-DASH transcoding")
+                print(output_string, file=sys.stdout)
                 result = con.execute(
                     uploaded_videos.update().where(uploaded_videos.c.input_content_id == input_content_id).values(
                         status='Encrypted', output_file_path=encryptation[1]))
@@ -111,11 +129,14 @@ class Main_ops:
                 dash_convert = Video_ops.video_dash(encryptation[1])
                 """Return includes a '1' at the end if successful"""
                 if (dash_convert[-1]) == 1:
+                    output_string = ("\n\n" + datetime.now().strftime(
+                        "%d/%m/%Y %H:%M:%S") + " - Everything went successful. Returning JSON")
+                    print(output_string, file=sys.stdout)
                     result = con.execute(
                         uploaded_videos.update().where(uploaded_videos.c.input_content_id == input_content_id).values(
-                            status='Ready', url=dash_convert[1]))
+                            status='Ready', url=dash_convert[2]))
                     """We return 1 for OK, url address, and packaged_content_id"""
-                    output = (1, dash_convert[1], packaged_content_id)
+                    output = (1, dash_convert[2], packaged_content_id)
                     return output
                 else:
                     return ("ERROR - Check command line")
