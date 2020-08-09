@@ -137,8 +137,10 @@ class Video_ops:
         try:
             subprocess.check_output(dash_custom_command, shell=True)
             dash_output = path + "/dash/stream.mpd"
+            list_dict = Video_ops.splitall(dash_output)
+            dash_url= ("http://localhost:8080/" + list_dict[-3] + "/" + list_dict[-2] + "/" + list_dict[-1])
             output = ("OK - File" + input_file + " has been processed into " +
-                      dash_output, dash_output, 1)
+                      dash_output, dash_output, dash_url, 1)
             return output
         except subprocess.CalledProcessError as e:
             output = ("\nERROR - can't generate the mpd file" +
@@ -147,12 +149,28 @@ class Video_ops:
             raise
         os.chdir(working_dir)
 
+    def splitall(path):
+        """ Simple path splitting for last URL output """
+        allparts = []
+        while 1:
+            parts = os.path.split(path)
+            if parts[0] == path:  # sentinel for absolute paths
+                allparts.insert(0, parts[0])
+                break
+            elif parts[1] == path:  # sentinel for relative paths
+                allparts.insert(0, parts[1])
+                break
+            else:
+                path = parts[0]
+                allparts.insert(0, parts[1])
+        return allparts
 
 # We define the folders as variables
 working_dir = os.getcwd()
 bin_dir = os.getcwd() + "/../bin"
 storage_dir = os.getcwd() + "/../storage/"
 output_dir = os.getcwd() + "/../output/"
+
 
 # For the future:
 # Further this exercise, we should consider a file normalisation function
