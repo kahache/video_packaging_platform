@@ -11,6 +11,7 @@ git clone https://github.com/kahache/video_packaging_platform.git
 And then, you can launch the main App 
 ```
 cd video_packaging_platform
+docker build . -t video_packaging_platform --no-cache
 docker-compose up
 ```
 It will start running the system on http://0.0.0.0:5000 on your system. 
@@ -83,7 +84,7 @@ I've considered only 9 rows for this exercise:
 
 **_input_content_origin_** : The path of the original file. This will be used to check if we have already uploaded a file with that name or not. 
 
-**_video_track_number_** : Video track number ID from metadata extracted with Bento4 utils, notice for other softwares as FFMpeg should be different wether they count zero as first or not)
+**_video_track_number_** : Video track number ID from metadata extracted with Bento4 utils, notice for other softwares as FFMpeg should be different wether they count zero as first or not.
 
 **_status_** : This is very important. This will be a text cell that will explain the last operation done with that video file.
     It can be:
@@ -111,7 +112,7 @@ This is quite simple. The first endpoint is what happens when we click on "uploa
 
 ![](images/video_received.png)
 
-The second endpoint is called with a JSON, for examle:
+The second endpoint is called with a JSON, for example:
 ```
 POST​ /packaged_content {
 “input_content_id”: 1,
@@ -132,23 +133,26 @@ GET​ /packaged_content/55
 ```
 
 And will receive an output like:
+```
+{
+"packaged_content_id": 73
+"url": http://localhost:8080/5F8LNI/dash/stream.mpd
 
-
-
-
-
+}
+```
 
 * The Flask API
 
 This simply redirects the endpoints of the API with the templates and the operations. It's the main file, which gets executed automatically and starts the service at http://0.0.0.0:5000
 
+IMPORTANT: For this exercise, we aren't erasing the files in the process. This means we can track and check the video outputs before it's full done in the output/ folder. This also means that one video can have 'several' content_package_id. I mean, it's not checking wether the file has been already packaged or not. This has been done like this in order to do several testings with only 1 uploaded file. If we want to avoid this, the code should be changed.
 ## Guide to validate playback correctness of the content packaged. 
 
-When we have the output, I've added an extra endpoint to start a file browser service with different point (this should be user access, not API access).
+When we have the output, I've added an extra endpoint to start a file browser service with different port (this should be user access, not API access).
 ```
 GET http://0.0.0.0:5000 
 ```
-So we can call the last method of the API to run this service. Once ran, we should be able to browse the file from the browser opening http://0.0.0.0:8080/videos
+So we can call the last method of the API to run this service. Once ran, we should be able to browse the file from the browser opening http://0.0.0.0:8080/videos (as we see, now the output is 8080 instead of the original 5000, be careful so you don't confuse!)
 
 Once it's open, we can open the video directly with [VLC Media Player](https://www.videolan.org/vlc/index.es.html) or with [FFPlay](https://ffmpeg.org/ffplay.html).
 
@@ -159,7 +163,7 @@ In order to further testing, we should consider using specialized player, such u
 ·Test Player from private Video services such as 
 [Bitmovin](https://bitmovin.com/demos/drm), info [here](https://bitmovin.com/docs/player/tutorials/how-to-play-mpeg-cenc-clearkey-content)
 [Wowza](https://www.wowza.com/testplayers)
-And so on. Or for example it seems there are some players online:
+And so on. You can check almost any company you'll find in Pavilion number 14 @ IBC each year. Or for example it seems there are some players online:
 Shaka Player
 [JW Player](https://www.jwplayer.com/developers/stream-tester/)
 
@@ -174,6 +178,7 @@ The first one is to process the video with [FFMpeg](https://ffmpeg.org), the inf
 The second one, (this hasn't been tested) and seems to be the real how-to, is to work with [MP4Box](https://gpac.wp.imt.fr). It seems this software allows us to combine with FFMpeg and it lets us to encrypt the files.
 More info about this method on these 2 links from the guys from Streamroot, first [here](https://blog.streamroot.io/encode-multi-bitrate-videos-mpeg-dash-mse-based-media-players/) and [here](https://blog.streamroot.io/encode-multi-bitrate-videos-mpeg-dash-mse-based-media-players-22/)
 
+Another important point is this API hasn't been intended to be multithread as it wasn't required. So it would be really interesting in order to extend the service, to work with task queue and be able to manage all the processes.
 ## Running the tests
 
 To run the tests, get with Linux/UNIX terminal into the /tests/ forlder and run:
@@ -182,7 +187,7 @@ bash run_tests.sh
 ```
 There you'll find a dialog box where you can choose the different tests to run. It's highly recommended to first download the test videos otherwise it can give errors. Feel free to check out the code and change variables or situations you'd like to test.
 
-
+Also, please notice this aren't the typical unit tests. They can run background operations too. This has been intended to be able to test MP4 corrupted video files, in order to check wether they can be processed or not.
 
 ## Files included in this package
 
