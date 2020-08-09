@@ -31,6 +31,8 @@ from typing import List, Dict
 
 # We declare variables
 storage_dir = os.getcwd() + "/../storage/"
+upload_dir = os.getcwd() + "/../output/"
+working_dir = os.getcwd()
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = storage_dir
 
@@ -52,6 +54,7 @@ def upload():
 
 @app.route('/success', methods=['POST'])
 def file_received():
+    """File processing when video received"""
     file_operation = Main_ops.success()
     if file_operation[0] == 1:
         return render_template("success.html", name=file_operation[1], input_content_id=file_operation[2])
@@ -81,6 +84,17 @@ def consult_status(packaged_content_id):
     """
     status_consult = Main_ops.consult_status(packaged_content_id)
     return status_consult
+
+@app.route('/videos/')
+def get_videos():
+    """
+    This method is to start serving files in the same server. It's just a quick way to access
+    Needs to be called to start running
+    Files will appear later on http://0.0.0.0:8080/
+    """
+    os.chdir(upload_dir)
+    p = subprocess.run(['python3 -m http.server 8080'], shell=True)
+    os.chdir(working_dir)
 
 
 """ Flask App main launcher """
