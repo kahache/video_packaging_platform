@@ -75,8 +75,8 @@ class Main_ops:
                         == input_content_origin)
                 ).fetchone()[0]
             output_string = ("\n\n" + datetime.now().strftime(
-                "%d/%m/%Y %H:%M:%S") +
-                             " - Redirecting to output website with the result")
+                "%d/%m/%Y %H:%M:%S") + " - Redirecting to output website with "
+                                       "the result")
             print(output_string, file=sys.stdout)
             output = (1, f.filename, input_content_id)
             return output
@@ -151,7 +151,7 @@ class Main_ops:
             if (encryptation[-1]) == 1:
                 """As successful, we need to update the SQL database"""
                 Main_ops.update_after_encrypt(con, input_content_id,
-                                                     encryptation[1])
+                                              encryptation[1])
                 """Once updated, we finally transcode into MPEG-Dash """
                 dash_convert = Video_ops.video_dash(encryptation[1])
                 """Return includes a '1' at the end if successful"""
@@ -166,8 +166,7 @@ class Main_ops:
         else:
             return ("ERROR - Check command line")
 
-
-    def update_after_encrypt(con, input_content_id,output_file_path):
+    def update_after_encrypt(con, input_content_id, output_file_path):
         output_string = (
                 "\n\n" +
                 datetime.now().strftime("%d/%m/%Y %H:%M:%S") +
@@ -177,7 +176,7 @@ class Main_ops:
             uploaded_videos.update().where(
                 uploaded_videos.c.input_content_id
                 == input_content_id).values(
-                status='Encrypted', output_file_path = output_file_path))
+                status='Encrypted', output_file_path=output_file_path))
 
     def update_after_dash(con, input_content_id,
                           dash_output, packaged_content_id):
