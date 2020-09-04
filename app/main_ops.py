@@ -151,8 +151,8 @@ class Main_ops:
             """Return includes a '1' at the end if successful"""
             if (encryptation[-1]) == 1:
                 """As successful, we need to update the SQL database"""
-                Update_DB.update_after_encrypt(con, input_content_id,
-                                                encryptation[1])
+                Update_DB.update_after_encrypt(
+                    con, input_content_id,encryptation[1])
                 """Once updated, we finally transcode into MPEG-Dash """
                 dash_convert = Video_ops.video_dash(encryptation[1])
                 """Return includes a '1' at the end if successful"""
