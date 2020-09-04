@@ -30,17 +30,6 @@ class Video_ops:
     def video_ingest(input_file):
         os.chdir(bin_dir)
         Video_ops.export_into_json(input_file)
-        """ Export the Video metadata into a JSON """
-        # try:
-        #     subprocess.check_output("./mp4info {} --format json > out.json".
-        #                             format(input_file), shell=True)
-        # except subprocess.CalledProcessError as e:
-        #     output = (
-        #         "ERROR - Corrupted or wrong file, please review the file. "
-        #         "Details:"
-        #         + '\n' + '\n', e)
-        #     return output
-        #     raise
         """ Check the metadata and search for video tracks """
         with open('out.json') as f:
             data = json.load(f)
@@ -53,23 +42,7 @@ class Video_ops:
                     os.chdir(working_dir)
                     """When a video track is found, return the Track ID and
                     put file into storage"""
-                    return Video_ops.export_into_json(input_file)
-                    # try:
-                    #     subprocess.check_output(
-                    #         "mv {}".format(input_file) + " {}".
-                    #         format(storage_dir), shell=True)
-                    #     file_name = ntpath.basename(input_file)
-                    #     # DATABASE - we add 1 as confirmation process went
-                    #     # good!
-                    #     output = ("OK - File " + input_file +
-                    #               " has been processed and moved to storage",
-                    #               video_track_number, 1)
-                    #     return output
-                    # except subprocess.CalledProcessError as e:
-                    #     output = (
-                    #         "\nERROR - can't move the file to storage\n\n", e)
-                    #     return output
-                    #     raise
+                    return Video_ops.move_into_storage(input_file)
             if video_found_flag == 0:
                 output = (
                     "ERROR - An error has been occured, file doesn't contain "
@@ -190,6 +163,7 @@ class Video_ops:
                 + '\n' + '\n', e)
             return output
             raise
+
     def move_into_storage(input_file):
         try:
             subprocess.check_output(
