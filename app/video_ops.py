@@ -86,8 +86,8 @@ class Video_ops:
         # First, generation of encrypted folder/file name
         output_code = ''.join(secrets.choice(string.ascii_uppercase +
                                              string.digits) for _ in range(6))
-        output_file_path = output_dir + output_code + "/" + \
-                           output_code + ".mp4"
+        output_file_path = \
+            output_dir + output_code + "/" + output_code + ".mp4"
         os.chdir(output_dir)
         os.mkdir(output_code, mode=0o0755)
         os.chdir(bin_dir)
