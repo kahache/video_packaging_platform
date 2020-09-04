@@ -27,11 +27,11 @@ And then comment the one down.
 localhost - makes reference to the system
 db - makes reference to the virtual DB inside
 """
+# engine = create_engine(
+#     'mysql://root:root@localhost:3306/video_files', convert_unicode=True,
+#     echo=True)
 engine = create_engine(
-    'mysql://root:root@localhost:3306/video_files', convert_unicode=True,
-    echo=True)
-# engine = create_engine('mysql://root:root@db:3306/video_files',
-# convert_unicode=True, echo=True)
+    'mysql://root:root@db:3306/video_files', convert_unicode=True, echo=True)
 metadata = MetaData()
 db_session = scoped_session(sessionmaker(autocommit=False,
                                          autoflush=False,
