@@ -29,17 +29,18 @@ class Video_ops:
 
     def video_ingest(input_file):
         os.chdir(bin_dir)
+        Video_ops.export_into_json(input_file)
         """ Export the Video metadata into a JSON """
-        try:
-            subprocess.check_output("./mp4info {} --format json > out.json".
-                                    format(input_file), shell=True)
-        except subprocess.CalledProcessError as e:
-            output = (
-                "ERROR - Corrupted or wrong file, please review the file. "
-                "Details:"
-                + '\n' + '\n', e)
-            return output
-            raise
+        # try:
+        #     subprocess.check_output("./mp4info {} --format json > out.json".
+        #                             format(input_file), shell=True)
+        # except subprocess.CalledProcessError as e:
+        #     output = (
+        #         "ERROR - Corrupted or wrong file, please review the file. "
+        #         "Details:"
+        #         + '\n' + '\n', e)
+        #     return output
+        #     raise
         """ Check the metadata and search for video tracks """
         with open('out.json') as f:
             data = json.load(f)
@@ -73,9 +74,6 @@ class Video_ops:
                     "ERROR - An error has been occured, file doesn't contain "
                     "an audio track ")
                 return output
-        # OPTIONAL - we erase the input_file
-        # subprocess.run("rm {}".format(input_file),stdout=subprocess.DEVNULL,
-        # stderr=subprocess.DEVNULL,shell=True)
 
     def video_fragment(input_file):
         """
@@ -178,6 +176,19 @@ class Video_ops:
                 path = parts[0]
                 allparts.insert(0, parts[1])
         return allparts
+
+    def export_into_json(input_file):
+        """ Export the Video metadata into a JSON """
+        try:
+            subprocess.check_output("./mp4info {} --format json > out.json".
+                                    format(input_file), shell=True)
+        except subprocess.CalledProcessError as e:
+            output = (
+                "ERROR - Corrupted or wrong file, please review the file. "
+                "Details:"
+                + '\n' + '\n', e)
+            return output
+            raise
 
 
 # We define the folders as variables
