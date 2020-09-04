@@ -30,7 +30,9 @@ from sqlalchemy.sql import *
 from typing import List, Dict
 from datetime import datetime
 
+
 class Update_DB:
+    
     def update_after_encrypt(con, input_content_id, output_file_path):
         output_string = (
                 "\n\n" +
