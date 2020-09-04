@@ -20,19 +20,27 @@ from database import metadata, db_session
 class VideosDB(object):
     query = db_session.query_property()
 
-    def __init__(self, input_content_id=None, input_content_origin=None,
-                 video_track_number=None, status=None,
-                 output_file_path=None, video_key=None, kid=None,
-                 packaged_content_id=None, url=None):
-        self.input_content_id = input_content_id
-        self.input_content_origin = input_content_origin
-        self.video_track_number = video_track_number
-        self.status = status
-        self.output_file_path = output_file_path
-        self.video_key = video_key
-        self.kid = kid
-        self.packaged_content_id = packaged_content_id
-        self.url = url
+    # def __init__(self, input_content_id=None, input_content_origin=None,
+    #              video_track_number=None, status=None,
+    #              output_file_path=None, video_key=None, kid=None,
+    #              packaged_content_id=None, url=None):
+    #     self.input_content_id = input_content_id
+    #     self.input_content_origin = input_content_origin
+    #     self.video_track_number = video_track_number
+    #     self.status = status
+    #     self.output_file_path = output_file_path
+    #     self.video_key = video_key
+    #     self.kid = kid
+    #     self.packaged_content_id = packaged_content_id
+    #     self.url = url
+
+    def __init__(self, *params):
+        for name, value in zip(("input_content_id", "input_content_origin",
+                                "video_track_number", "status",
+                                "output_file_path", "video_key", "kid",
+                                "packaged_content_id", "url"
+                                ), tuple(params)):
+            setattr(self, name, None)
 
     def __repr__(self):
         return '<VideosDB %r>' % (self.input_content_id)
