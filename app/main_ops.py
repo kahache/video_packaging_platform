@@ -4,7 +4,9 @@ __start_date__ = "25th July 2020"
 __end_date__ = "5th August 2020"
 __maintainer__ = "me"
 __email__ = "little_kh@hotmail.com"
-__requirements__ = "SQL-Alchemy, MySQL, Flask-SQLAlchemy, database.py, models.py, video_ops.py"
+__requirements__ = "SQL-Alchemy, MySQL," \
+                   " Flask-SQLAlchemy, database.py, " \
+                   "models.py, video_ops.py"
 __status__ = "Production"
 __description__ = """
 This is the main background operations script.
@@ -41,7 +43,8 @@ class Main_ops:
 
     def success():
         """First, move file into storage and generate outputs"""
-        output_string = ("\n\n" + datetime.now().strftime("%d/%m/%Y %H:%M:%S") +
+        output_string = ("\n\n" +
+                         datetime.now().strftime("%d/%m/%Y %H:%M:%S") +
                          " - File received")
         print(output_string, file=sys.stdout)
         app.config['UPLOAD_FOLDER'] = storage_dir
@@ -104,7 +107,9 @@ class Main_ops:
             con.execute(uploaded_videos.select(
                 uploaded_videos.c.input_content_id == input_content_id)).fetchone()[1]
         print(file_for_fragment)
-        output_string = ("\n\n" + datetime.now().strftime("%d/%m/%Y %H:%M:%S") + " - Starting video fragmentation")
+        output_string = ("\n\n" +
+                         datetime.now().strftime("%d/%m/%Y %H:%M:%S") +
+                         " - Starting video fragmentation")
         print(output_string, file=sys.stdout)
         fragmentation = Video_ops.video_fragment(file_for_fragment)
         """Return includes a '1' at the end if successful"""
@@ -167,7 +172,6 @@ class Main_ops:
                 return ("ERROR - Check command line")
         else:
             return ("ERROR - Check command line")
-
 
     def consult_status(packaged_content_id):
         """
