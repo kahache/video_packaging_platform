@@ -119,23 +119,8 @@ class Main_ops:
         """Return includes a '1' at the end if successful"""
         if (fragmentation[-1]) == 1:
             """As successful, we need to update the SQL database"""
-            packaged_content_id = random.randint(0, 100)
-            # Consider for the future if we need to add
-            # operations to avoid duplicates or detect
-            # already packaged files
-            result = con.execute(
-                uploaded_videos.update().where(
-                    uploaded_videos.c.input_content_id
-                    == input_content_id).values(
-                    status='Fragmented', output_file_path=fragmentation[1],
-                    video_key=video_key, kid=kid,
-                    packaged_content_id=packaged_content_id))
-            output_string = ("\n\n" + datetime.now().strftime(
-                "%d/%m/%Y %H:%M:%S") +
-                             " - Starting video encryptation with" +
-                             " the following packaged_content_id:")
-            print(output_string, file=sys.stdout)
-            print(packaged_content_id, file=sys.stdout)
+            packaged_content_id = Update_DB.update_after_fragment(
+                con, input_content_id, fragmentation[1], video_key, kid)
             """Once updated, we extract info from
             database and we launch the encryption """
             video_track_number = \
@@ -152,10 +137,9 @@ class Main_ops:
             if (encryptation[-1]) == 1:
                 """As successful, we need to update the SQL database"""
                 Update_DB.update_after_encrypt(
-                    con, input_content_id,encryptation[1])
+                    con, input_content_id, encryptation[1])
                 """Once updated, we finally transcode into MPEG-Dash """
                 dash_convert = Video_ops.video_dash(encryptation[1])
-                """Return includes a '1' at the end if successful"""
                 if (dash_convert[-1]) == 1:
                     return Update_DB.update_after_dash(
                         con, input_content_id, dash_convert[2],
