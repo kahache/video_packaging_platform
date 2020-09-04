@@ -91,47 +91,43 @@ class Main_ops:
         It works with nested operations, if one operation is
         successful, then starts the next.
         """
-        # Consider for the future if we need to add
-        # operations to avoid duplicates
-        """First extract metadata from JSON into variables """
         uploaded_videos = Table('uploaded_videos', metadata, autoload=True)
         con = engine.connect()
-        input_content_id, video_key, kid, file_for_fragment = Main_ops.define_packaging_variables(con)
+        input_content_id, video_key, kid, file_for_fragment = \
+            Main_ops.define_packaging_variables(con)
         fragmentation = Video_ops.video_fragment(file_for_fragment)
         """Return includes a '1' at the end if successful"""
-        if (fragmentation[-1]) == 1:
-            """As successful, we need to update the SQL database"""
-            packaged_content_id = Update_DB.update_after_fragment(
+        if not (fragmentation[-1]) == 1:
+            raise Exception("ERROR - Check command line")
+        """As successful, we need to update the SQL database"""
+        packaged_content_id = Update_DB.update_after_fragment(
                 con, input_content_id, fragmentation[1], video_key, kid)
-            """Once updated, we extract info from
-            database and we launch the encryption """
-            video_track_number = \
-                con.execute(uploaded_videos.select(
-                    uploaded_videos.c.input_content_id
+        """Once updated, we extract info from
+        database and we launch the encryption """
+        video_track_number = \
+           con.execute(uploaded_videos.select(
+                uploaded_videos.c.input_content_id
                     == input_content_id)).fetchone()[2]
-            file_to_encrypt = \
+        file_to_encrypt = \
                 con.execute(uploaded_videos.select(
                     uploaded_videos.c.input_content_id
                     == input_content_id)).fetchone()[4]
-            encryptation = Video_ops.video_encrypt(
+        encryptation = Video_ops.video_encrypt(
                 video_track_number, video_key, kid, file_to_encrypt)
-            """Return includes a '1' at the end if successful"""
-            if (encryptation[-1]) == 1:
-                """As successful, we need to update the SQL database"""
-                Update_DB.update_after_encrypt(
+        """Return includes a '1' at the end if successful"""
+        if not (encryptation[-1]) == 1:
+            raise Exception("ERROR - Check command line")
+        """As successful, we need to update the SQL database"""
+        Update_DB.update_after_encrypt(
                     con, input_content_id, encryptation[1])
-                """Once updated, we finally transcode into MPEG-Dash """
-                dash_convert = Video_ops.video_dash(encryptation[1])
-                if (dash_convert[-1]) == 1:
-                    return Update_DB.update_after_dash(
+        """Once updated, we finally transcode into MPEG-Dash """
+        dash_convert = Video_ops.video_dash(encryptation[1])
+        if not (dash_convert[-1]) == 1:
+            raise Exception("ERROR - Check command line")
+        return Update_DB.update_after_dash(
                         con, input_content_id, dash_convert[2],
                         packaged_content_id)
-                else:
-                    return ("ERROR - Check command line")
-            else:
-                return ("ERROR - Check command line")
-        else:
-            return ("ERROR - Check command line")
+
 
     def consult_status(packaged_content_id):
         """
@@ -180,8 +176,7 @@ class Main_ops:
                          datetime.now().strftime("%d/%m/%Y %H:%M:%S") +
                          " - Starting to package")
         print(output_string, file=sys.stdout)
-        # uploaded_videos = Table('uploaded_videos', metadata, autoload=True)
-        # con = engine.connect()
+        """First extract metadata from JSON into variables """
         print(request.is_json)
         uploaded_json = request.get_json()
         input_content_id = uploaded_json['input_content_id']
