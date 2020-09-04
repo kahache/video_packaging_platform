@@ -101,33 +101,33 @@ class Main_ops:
             raise Exception("ERROR - Check command line")
         """As successful, we need to update the SQL database"""
         packaged_content_id = Update_DB.update_after_fragment(
-                con, input_content_id, fragmentation[1], video_key, kid)
+            con, input_content_id, fragmentation[1], video_key, kid)
         """Once updated, we extract info from
         database and we launch the encryption """
         video_track_number = \
-           con.execute(uploaded_videos.select(
-                uploaded_videos.c.input_content_id
-                    == input_content_id)).fetchone()[2]
+            con.execute(
+                uploaded_videos.select(
+                    uploaded_videos.c.input_content_id ==
+                    input_content_id)).fetchone()[2]
         file_to_encrypt = \
-                con.execute(uploaded_videos.select(
-                    uploaded_videos.c.input_content_id
-                    == input_content_id)).fetchone()[4]
+            con.execute(uploaded_videos.select(
+                uploaded_videos.c.input_content_id
+                == input_content_id)).fetchone()[4]
         encryptation = Video_ops.video_encrypt(
-                video_track_number, video_key, kid, file_to_encrypt)
+            video_track_number, video_key, kid, file_to_encrypt)
         """Return includes a '1' at the end if successful"""
         if not (encryptation[-1]) == 1:
             raise Exception("ERROR - Check command line")
         """As successful, we need to update the SQL database"""
         Update_DB.update_after_encrypt(
-                    con, input_content_id, encryptation[1])
+            con, input_content_id, encryptation[1])
         """Once updated, we finally transcode into MPEG-Dash """
         dash_convert = Video_ops.video_dash(encryptation[1])
         if not (dash_convert[-1]) == 1:
             raise Exception("ERROR - Check command line")
         return Update_DB.update_after_dash(
-                        con, input_content_id, dash_convert[2],
-                        packaged_content_id)
-
+            con, input_content_id, dash_convert[2],
+            packaged_content_id)
 
     def consult_status(packaged_content_id):
         """
