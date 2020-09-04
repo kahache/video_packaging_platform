@@ -94,27 +94,28 @@ class Main_ops:
         # Consider for the future if we need to add
         # operations to avoid duplicates
         """First extract metadata from JSON into variables """
-        output_string = ("\n\n" +
-                         datetime.now().strftime("%d/%m/%Y %H:%M:%S") +
-                         " - Starting to package")
-        print(output_string, file=sys.stdout)
+        # output_string = ("\n\n" +
+        #                  datetime.now().strftime("%d/%m/%Y %H:%M:%S") +
+        #                  " - Starting to package")
+        # print(output_string, file=sys.stdout)
         uploaded_videos = Table('uploaded_videos', metadata, autoload=True)
         con = engine.connect()
-        print(request.is_json)
-        uploaded_json = request.get_json()
-        input_content_id = uploaded_json['input_content_id']
-        video_key = uploaded_json['key']
-        kid = uploaded_json['kid']
-        """First file needs to be fragmented"""
-        file_for_fragment = \
-            con.execute(uploaded_videos.select(
-                uploaded_videos.c.input_content_id
-                == input_content_id)).fetchone()[1]
-        print(file_for_fragment)
-        output_string = ("\n\n" +
-                         datetime.now().strftime("%d/%m/%Y %H:%M:%S") +
-                         " - Starting video fragmentation")
-        print(output_string, file=sys.stdout)
+        # print(request.is_json)
+        # uploaded_json = request.get_json()
+        # input_content_id = uploaded_json['input_content_id']
+        # video_key = uploaded_json['key']
+        # kid = uploaded_json['kid']
+        # """First file needs to be fragmented"""
+        # file_for_fragment = \
+        #     con.execute(uploaded_videos.select(
+        #         uploaded_videos.c.input_content_id
+        #         == input_content_id)).fetchone()[1]
+        # print(file_for_fragment)
+        # output_string = ("\n\n" +
+        #                  datetime.now().strftime("%d/%m/%Y %H:%M:%S") +
+        #                  " - Starting video fragmentation")
+        # print(output_string, file=sys.stdout)
+        input_content_id, video_key, kid, file_for_fragment = Main_ops.prueba_funcion(con)
         fragmentation = Video_ops.video_fragment(file_for_fragment)
         """Return includes a '1' at the end if successful"""
         if (fragmentation[-1]) == 1:
@@ -192,3 +193,27 @@ class Main_ops:
                       packaged_content_id + "is currently with status" +
                       status)
             return (output)
+
+    def prueba_funcion(con):
+        output_string = ("\n\n" +
+                         datetime.now().strftime("%d/%m/%Y %H:%M:%S") +
+                         " - Starting to package")
+        print(output_string, file=sys.stdout)
+        # uploaded_videos = Table('uploaded_videos', metadata, autoload=True)
+        # con = engine.connect()
+        print(request.is_json)
+        uploaded_json = request.get_json()
+        input_content_id = uploaded_json['input_content_id']
+        video_key = uploaded_json['key']
+        kid = uploaded_json['kid']
+        """First file needs to be fragmented"""
+        file_for_fragment = \
+            con.execute(uploaded_videos.select(
+                uploaded_videos.c.input_content_id
+                == input_content_id)).fetchone()[1]
+        print(file_for_fragment)
+        output_string = ("\n\n" +
+                         datetime.now().strftime("%d/%m/%Y %H:%M:%S") +
+                         " - Starting video fragmentation")
+        print(output_string, file=sys.stdout)
+        return input_content_id, video_key, kid, file_for_fragment
