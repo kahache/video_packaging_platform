@@ -1,4 +1,22 @@
 version: "2"
+checks:
+  file-lines:
+    config:
+      threshold: 300
+plugins:
+  duplication:
+    enable: true
+    config:
+      languages:
+        python:
+          mass_threshold: 40
+  pep8:
+    enabled: true
+  radon:
+    enabled: true
+ratings:
+  paths:
+    - "app/**.py"	
 exclude_patterns:
   - "bin/"
   - "db/"
