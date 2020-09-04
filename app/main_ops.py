@@ -108,7 +108,7 @@ class Main_ops:
         """First file needs to be fragmented"""
         file_for_fragment = \
             con.execute(uploaded_videos.select(
-                uploaded_videos.c.input_content_id \
+                uploaded_videos.c.input_content_id
                 == input_content_id)).fetchone()[1]
         print(file_for_fragment)
         output_string = ("\n\n" +
