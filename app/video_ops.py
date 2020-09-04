@@ -50,8 +50,8 @@ class Video_ops:
                     video_found_flag = 1
                     video_track_number = (item.get('id'))
                     os.chdir(working_dir)
-                    """ When a video track is found, return the Track ID and 
-                    put file into storage """
+                    """When a video track is found, return the Track ID and
+                    put file into storage"""
                     try:
                         subprocess.check_output(
                             "mv {}".format(input_file) + " {}".
@@ -86,12 +86,12 @@ class Video_ops:
         # First, generation of encrypted folder/file name
         output_code = ''.join(secrets.choice(string.ascii_uppercase +
                                              string.digits) for _ in range(6))
-        output_file_path = output_dir + output_code + "/" + output_code + \
-                           ".mp4"
+        output_file_path = output_dir + output_code + "/" + \
+                           output_code + ".mp4"
         os.chdir(output_dir)
         os.mkdir(output_code, mode=0o0755)
         os.chdir(bin_dir)
-        """Then the video fragmentation process uses its output as name 
+        """Then the video fragmentation process uses its output as name
         encryption"""
         fragment_custom_command = ("./mp4fragment " + str(input_file) + " " +
                                    output_file_path)
