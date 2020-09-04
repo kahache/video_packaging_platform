@@ -9,7 +9,7 @@ __status__ = "Production"
 __description__ = """
 This is the Video Operations module.
 It can extract metadata, fragment, encrypt and transcode into MPEG-DASH
-It's a dumb module, it doesn't work with databases. It only needs the Bento4 
+It's a dumb module, it doesn't work with databases. It only needs the Bento4
 binaries.
 """
 
@@ -35,8 +35,9 @@ class Video_ops:
                                     format(input_file), shell=True)
         except subprocess.CalledProcessError as e:
             output = (
-            "ERROR - Corrupted or wrong file, please review the file. Details:"
-            + '\n' + '\n', e)
+                "ERROR - Corrupted or wrong file, please review the file. "
+                "Details:"
+                + '\n' + '\n', e)
             return output
             raise
         """ Check the metadata and search for video tracks """
@@ -63,7 +64,7 @@ class Video_ops:
                         return output
                     except subprocess.CalledProcessError as e:
                         output = (
-                        "\nERROR - can't move the file to storage\n\n", e)
+                            "\nERROR - can't move the file to storage\n\n", e)
                         return output
                         raise
             if video_found_flag == 0:
@@ -175,6 +176,7 @@ class Video_ops:
                 path = parts[0]
                 allparts.insert(0, parts[1])
         return allparts
+
 
 # We define the folders as variables
 working_dir = os.getcwd()
