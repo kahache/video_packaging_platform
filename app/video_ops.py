@@ -89,8 +89,8 @@ class Video_ops:
         os.chdir(output_dir)
         os.mkdir(output_code, mode=0o0755)
         os.chdir(bin_dir)
-        """ Then the video fragmentation process uses its output as name 
-        encryption """
+        """Then the video fragmentation process uses its output as name 
+        encryption"""
         fragment_custom_command = ("./mp4fragment " + str(input_file) + " " +
                                    output_file_path)
         try:
