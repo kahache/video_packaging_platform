@@ -42,7 +42,8 @@ class Video_ops:
                     os.chdir(working_dir)
                     """When a video track is found, return the Track ID and
                     put file into storage"""
-                    return Video_ops.move_into_storage(input_file)
+                    return Video_ops.move_into_storage(
+                        input_file, video_track_number)
             if video_found_flag == 0:
                 output = (
                     "ERROR - An error has been occured, file doesn't contain "
@@ -153,6 +154,7 @@ class Video_ops:
 
     def export_into_json(input_file):
         """ Export the Video metadata into a JSON """
+        os.chdir(bin_dir)
         try:
             subprocess.check_output("./mp4info {} --format json > out.json".
                                     format(input_file), shell=True)
@@ -164,7 +166,7 @@ class Video_ops:
             return output
             raise
 
-    def move_into_storage(input_file):
+    def move_into_storage(input_file, video_track_number):
         try:
             subprocess.check_output(
                 "mv {}".format(input_file) + " {}".
