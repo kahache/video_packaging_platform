@@ -29,6 +29,7 @@ from sqlalchemy import *
 from sqlalchemy.sql import *
 from typing import List, Dict
 from datetime import datetime
+from update_database import Update_DB
 
 # We declare variables
 storage_dir = os.getcwd() + "/../storage/"
@@ -150,13 +151,13 @@ class Main_ops:
             """Return includes a '1' at the end if successful"""
             if (encryptation[-1]) == 1:
                 """As successful, we need to update the SQL database"""
-                Main_ops.update_after_encrypt(con, input_content_id,
+                Update_DB.update_after_encrypt(con, input_content_id,
                                               encryptation[1])
                 """Once updated, we finally transcode into MPEG-Dash """
                 dash_convert = Video_ops.video_dash(encryptation[1])
                 """Return includes a '1' at the end if successful"""
                 if (dash_convert[-1]) == 1:
-                    return Main_ops.update_after_dash(con, input_content_id,
+                    return Update_DB.update_after_dash(con, input_content_id,
                                                       dash_convert[2],
                                                       packaged_content_id)
                 else:
@@ -165,34 +166,6 @@ class Main_ops:
                 return ("ERROR - Check command line")
         else:
             return ("ERROR - Check command line")
-
-    def update_after_encrypt(con, input_content_id, output_file_path):
-        output_string = (
-                "\n\n" +
-                datetime.now().strftime("%d/%m/%Y %H:%M:%S") +
-                " - Starting MPEG-DASH transcoding")
-        print(output_string, file=sys.stdout)
-        result = con.execute(
-            uploaded_videos.update().where(
-                uploaded_videos.c.input_content_id
-                == input_content_id).values(
-                status='Encrypted', output_file_path=output_file_path))
-
-    def update_after_dash(con, input_content_id,
-                          dash_output, packaged_content_id):
-        output_string = ("\n\n" + datetime.now().strftime(
-            "%d/%m/%Y %H:%M:%S") +
-                         " - Everything went successful. Returning JSON")
-        print(output_string, file=sys.stdout)
-        result = con.execute(
-            uploaded_videos.update().where(
-                uploaded_videos.c.input_content_id
-                == input_content_id).values(
-                status='Ready', url=dash_output))
-        """We return 1 for OK, url address,
-            and packaged_content_id"""
-        output = (1, dash_output, packaged_content_id)
-        return output
 
     def consult_status(packaged_content_id):
         """
