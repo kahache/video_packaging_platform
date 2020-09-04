@@ -20,8 +20,10 @@ from database import metadata, db_session
 class VideosDB(object):
     query = db_session.query_property()
 
-    def __init__(self, input_content_id=None, input_content_origin=None, video_track_number=None, status=None,
-                 output_file_path=None, video_key=None, kid=None, packaged_content_id=None, url=None):
+    def __init__(self, input_content_id=None, input_content_origin=None,
+                 video_track_number=None, status=None,
+                 output_file_path=None, video_key=None, kid=None,
+                 packaged_content_id=None, url=None):
         self.input_content_id = input_content_id
         self.input_content_origin = input_content_origin
         self.video_track_number = video_track_number
@@ -37,7 +39,8 @@ class VideosDB(object):
 
 
 uploaded_videos = Table('uploaded_videos', metadata,
-                        Column('input_content_id', Integer, primary_key=True, autoincrement=True, unique=True),
+                        Column('input_content_id', Integer, primary_key=True,
+                               autoincrement=True, unique=True),
                         Column('input_content_origin', String(255), ),
                         Column('video_track_number', Integer),
                         Column('status', String(255)),
