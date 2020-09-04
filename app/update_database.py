@@ -32,8 +32,9 @@ from datetime import datetime
 
 
 class Update_DB:
-    
-    def update_after_fragment(con, input_content_id, output_file_path, video_key, kid):
+
+    def update_after_fragment(con, input_content_id, output_file_path,
+                              video_key, kid):
         packaged_content_id = random.randint(0, 100)
         result = con.execute(
             uploaded_videos.update().where(
