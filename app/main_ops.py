@@ -94,28 +94,9 @@ class Main_ops:
         # Consider for the future if we need to add
         # operations to avoid duplicates
         """First extract metadata from JSON into variables """
-        # output_string = ("\n\n" +
-        #                  datetime.now().strftime("%d/%m/%Y %H:%M:%S") +
-        #                  " - Starting to package")
-        # print(output_string, file=sys.stdout)
         uploaded_videos = Table('uploaded_videos', metadata, autoload=True)
         con = engine.connect()
-        # print(request.is_json)
-        # uploaded_json = request.get_json()
-        # input_content_id = uploaded_json['input_content_id']
-        # video_key = uploaded_json['key']
-        # kid = uploaded_json['kid']
-        # """First file needs to be fragmented"""
-        # file_for_fragment = \
-        #     con.execute(uploaded_videos.select(
-        #         uploaded_videos.c.input_content_id
-        #         == input_content_id)).fetchone()[1]
-        # print(file_for_fragment)
-        # output_string = ("\n\n" +
-        #                  datetime.now().strftime("%d/%m/%Y %H:%M:%S") +
-        #                  " - Starting video fragmentation")
-        # print(output_string, file=sys.stdout)
-        input_content_id, video_key, kid, file_for_fragment = Main_ops.prueba_funcion(con)
+        input_content_id, video_key, kid, file_for_fragment = Main_ops.define_packaging_variables(con)
         fragmentation = Video_ops.video_fragment(file_for_fragment)
         """Return includes a '1' at the end if successful"""
         if (fragmentation[-1]) == 1:
@@ -141,12 +122,12 @@ class Main_ops:
                     con, input_content_id, encryptation[1])
                 """Once updated, we finally transcode into MPEG-Dash """
                 dash_convert = Video_ops.video_dash(encryptation[1])
-                # if (dash_convert[-1]) == 1:
-                #     return Update_DB.update_after_dash(
-                #         con, input_content_id, dash_convert[2],
-                #         packaged_content_id)
-                # else:
-                #     return ("ERROR - Check command line")
+                if (dash_convert[-1]) == 1:
+                    return Update_DB.update_after_dash(
+                        con, input_content_id, dash_convert[2],
+                        packaged_content_id)
+                else:
+                    return ("ERROR - Check command line")
             else:
                 return ("ERROR - Check command line")
         else:
@@ -194,7 +175,7 @@ class Main_ops:
                       status)
             return (output)
 
-    def prueba_funcion(con):
+    def define_packaging_variables(con):
         output_string = ("\n\n" +
                          datetime.now().strftime("%d/%m/%Y %H:%M:%S") +
                          " - Starting to package")
