@@ -165,25 +165,30 @@ class Main_ops:
                 dash_convert = Video_ops.video_dash(encryptation[1])
                 """Return includes a '1' at the end if successful"""
                 if (dash_convert[-1]) == 1:
-                    output_string = ("\n\n" + datetime.now().strftime(
-                        "%d/%m/%Y %H:%M:%S") +
-                        " - Everything went successful. Returning JSON")
-                    print(output_string, file=sys.stdout)
-                    result = con.execute(
-                        uploaded_videos.update().where(
-                            uploaded_videos.c.input_content_id
-                            == input_content_id).values(
-                            status='Ready', url=dash_convert[2]))
-                    """We return 1 for OK, url address,
-                    and packaged_content_id"""
-                    output = (1, dash_convert[2], packaged_content_id)
-                    return output
+                    return Main_ops.update_after_dash(con, input_content_id,
+                                               dash_convert[2], packaged_content_id)
                 else:
                     return ("ERROR - Check command line")
             else:
                 return ("ERROR - Check command line")
         else:
             return ("ERROR - Check command line")
+
+    def update_after_dash(con, input_content_id,
+                          dash_output, packaged_content_id):
+            output_string = ("\n\n" + datetime.now().strftime(
+                "%d/%m/%Y %H:%M:%S") +
+                             " - Everything went successful. Returning JSON")
+            print(output_string, file=sys.stdout)
+            result = con.execute(
+                uploaded_videos.update().where(
+                    uploaded_videos.c.input_content_id
+                    == input_content_id).values(
+                    status='Ready', url=dash_output))
+            """We return 1 for OK, url address,
+            and packaged_content_id"""
+            output = (1, dash_output, packaged_content_id)
+            return output
 
     def consult_status(packaged_content_id):
         """
@@ -226,4 +231,3 @@ class Main_ops:
                       packaged_content_id + "is currently with status" +
                       status)
             return (output)
-        
