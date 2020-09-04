@@ -33,6 +33,23 @@ from datetime import datetime
 
 class Update_DB:
     
+    def update_after_fragment(con, input_content_id, output_file_path, video_key, kid):
+        packaged_content_id = random.randint(0, 100)
+        result = con.execute(
+            uploaded_videos.update().where(
+                uploaded_videos.c.input_content_id
+                == input_content_id).values(
+                status='Fragmented', output_file_path=output_file_path,
+                video_key=video_key, kid=kid,
+                packaged_content_id=packaged_content_id))
+        output_string = ("\n\n" + datetime.now().strftime(
+            "%d/%m/%Y %H:%M:%S") +
+                         " - Starting video encryptation with" +
+                         " the following packaged_content_id:")
+        print(output_string, file=sys.stdout)
+        print(packaged_content_id, file=sys.stdout)
+        return packaged_content_id
+
     def update_after_encrypt(con, input_content_id, output_file_path):
         output_string = (
                 "\n\n" +
@@ -56,7 +73,7 @@ class Update_DB:
                 uploaded_videos.c.input_content_id
                 == input_content_id).values(
                 status='Ready', url=dash_output))
-        """We return 1 for OK, url address,
+        """We return 1 for successful, url address,
             and packaged_content_id"""
         output = (1, dash_output, packaged_content_id)
         return output
