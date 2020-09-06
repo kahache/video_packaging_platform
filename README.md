@@ -158,13 +158,56 @@ Once it's open, we can open the video directly with [VLC Media Player](https://w
 
 If we open the video, we shouldn't be able to see the video track as it's encrypted. This has been tested with both softwares.
 
-In order to further testing, we should consider using specialized player, such us:
+To check the decrypted video, you should have Google Chrome installed with a higher version than 69.
+
+First you should edit the file 
+```
+/tests/test_player/myapp.js
+```
+Here you need to replace the output URL you should have from the packaged content, e.g. for http://localhost:8080/NZ7KLC/dash/stream.mpd
+```
+const manifestUri =
+    'http://localhost:8080/NZ7KLC/dash/stream.mpd';
+```
+
+Then in the same file, you should convert your KEY and KID into hexadecimal and put it inside. For example, let's assume we have the values:
+```
+"key":"hyN9IKGfWKdAwFaE5pm0qg","kid":"oW5AK5BW43HzbTSKpiu3SQ"
+```
+If we go to this [Base64 converter website](https://cryptii.com/pipes/binary-to-base64) or any other website, we can convert the previous values into hexadecimal:
+```
+"key":"87237d20a19f58a740c05684e699b4aa","kid":"a16e402b9056e371f36d348aa62bb749"
+```
+Now that you have the values in hexadecimal, you should put them inside the code of myapp.js. You'll find just a few lines down. Keep in mind the KID goes before KEY!:
+```
+  // IMPORTANT!
+  // Here we add the concrete KID and KEY we need to decrypt the video.
+  player.configure({
+  drm: {
+    clearKeys: {
+      // 'key-id-in-hex': 'key-in-hex',
+      'a16e402b9056e371f36d348aa62bb749': '87237d20a19f58a740c05684e699b4aa'
+      }
+    }
+  });
+```
+
+And save the file, obviously :-)
+
+Second we need to open the Chrome browser without [cors](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing), you can follow [this very simple guide and open from terminal](https://alfilatov.com/posts/run-chrome-without-cors/).
+Then open this path as the URL:
+```
+YOUR/PATH/TO/REPO/video_packaging_platform/tests/test_player/player.html
+```
+
+And enjoy the video!
+
+In order to do further testing, we should consider using another specialized players and test with different browsers, such us:
 ·Test Player from [DASH IF](https://github.com/Dash-Industry-Forum/dash.js/blob/development/samples/drm/clearkey.html)
 ·Test Player from private Video services such as 
 [Bitmovin](https://bitmovin.com/demos/drm), info [here](https://bitmovin.com/docs/player/tutorials/how-to-play-mpeg-cenc-clearkey-content)
 [Wowza](https://www.wowza.com/testplayers)
 And so on. You can check almost any company you'll find in Pavilion number 14 @ IBC each year. Or for example it seems there are some players online:
-Shaka Player
 [JW Player](https://www.jwplayer.com/developers/stream-tester/)
 
 IMPORTANT: Please notice none of this players have been tested.
