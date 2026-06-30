@@ -35,7 +35,11 @@ class Update_DB:
 
     def update_after_fragment(con, input_content_id, output_file_path,
                               video_key, kid):
-        packaged_content_id = random.randint(0, 100)
+        # Derive the next id from the current maximum so it stays unique
+        # (the column has a UNIQUE constraint; a random 0-100 collides easily).
+        current_max = con.execute(
+            select(func.max(uploaded_videos.c.packaged_content_id))).scalar()
+        packaged_content_id = (current_max or 0) + 1
         result = con.execute(
             uploaded_videos.update().where(
                 uploaded_videos.c.input_content_id
@@ -43,6 +47,7 @@ class Update_DB:
                 status='Fragmented', output_file_path=output_file_path,
                 video_key=video_key, kid=kid,
                 packaged_content_id=packaged_content_id))
+        con.commit()
         output_string = ("\n\n" + datetime.now().strftime(
             "%d/%m/%Y %H:%M:%S") +
                          " - Starting video encryptation with" +
@@ -62,6 +67,7 @@ class Update_DB:
                 uploaded_videos.c.input_content_id
                 == input_content_id).values(
                 status='Encrypted', output_file_path=output_file_path))
+        con.commit()
 
     def update_after_dash(con, input_content_id,
                           dash_output, packaged_content_id):
@@ -74,6 +80,7 @@ class Update_DB:
                 uploaded_videos.c.input_content_id
                 == input_content_id).values(
                 status='Ready', url=dash_output))
+        con.commit()
         """We return 1 for successful, url address,
             and packaged_content_id"""
         output = (1, dash_output, packaged_content_id)

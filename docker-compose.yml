@@ -1,9 +1,10 @@
-version: "3"
+version: "3.9"
 services:
   app:
     build: .
-    links:
-      - "db"
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "5000:5000"
       - "8080:8080"
@@ -14,6 +15,11 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: video_files
-      MYSQL_USER: root
     volumes:
       - ./db:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s

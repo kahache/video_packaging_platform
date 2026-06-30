@@ -29,17 +29,23 @@ class Video_ops:
 
     def video_ingest(input_file):
         os.chdir(bin_dir)
-        Video_ops.export_into_json(input_file)
-        """ Check the metadata and search for video tracks """
-        with open('out.json') as f:
-            data = json.load(f)
-            items = data.get('tracks')
+        try:
+            Video_ops.export_into_json(input_file)
+            """ Check the metadata and search for video tracks """
+            try:
+                with open('out.json') as f:
+                    data = json.load(f)
+            except (ValueError, OSError):
+                return ("ERROR - Could not read metadata. The file may be "
+                        "corrupted or not a valid MP4: " + str(input_file))
+            # 'tracks' is absent when the file is not a valid MP4 movie;
+            # default to an empty list so we report a clean error below.
+            items = data.get('tracks') or []
             video_found_flag = 0
             for item in items:
                 if item.get('type') == 'Video':
                     video_found_flag = 1
                     video_track_number = (item.get('id'))
-                    os.chdir(working_dir)
                     """When a video track is found, return the Track ID and
                     put file into storage"""
                     return Video_ops.move_into_storage(
@@ -47,8 +53,10 @@ class Video_ops:
             if video_found_flag == 0:
                 output = (
                     "ERROR - An error has been occured, file doesn't contain "
-                    "an audio track ")
+                    "a video track ")
                 return output
+        finally:
+            os.chdir(working_dir)
 
     def video_fragment(input_file):
         """
@@ -78,8 +86,8 @@ class Video_ops:
             output = ("\nERROR - can't fragment the video file" +
                       input_file + "\n\n", e)
             return output
-            raise
-        os.chdir(working_dir)
+        finally:
+            os.chdir(working_dir)
 
     def video_encrypt(video_track_number, key, kid, input_file):
         """
@@ -111,8 +119,8 @@ class Video_ops:
             output = ("\nERROR - can't encrypt the video file" +
                       input_file + "\n\n", e)
             return output
-            raise
-        os.chdir(working_dir)
+        finally:
+            os.chdir(working_dir)
 
     def video_dash(input_file):
         """ Simple transcoding from the input video into a MPEG-DASH output """
@@ -133,8 +141,8 @@ class Video_ops:
             output = ("\nERROR - can't generate the mpd file" +
                       input_file + "\n\n", e)
             return output
-            raise
-        os.chdir(working_dir)
+        finally:
+            os.chdir(working_dir)
 
     def splitall(path):
         """ Simple path splitting for last URL output """
@@ -164,7 +172,6 @@ class Video_ops:
                 "Details:"
                 + '\n' + '\n', e)
             return output
-            raise
 
     def move_into_storage(input_file, video_track_number):
         try:
@@ -182,7 +189,6 @@ class Video_ops:
             output = (
                 "\nERROR - can't move the file to storage\n\n", e)
             return output
-            raise
 
 
 # We define the folders as variables
