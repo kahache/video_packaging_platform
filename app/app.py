@@ -37,8 +37,8 @@ working_dir = os.getcwd()
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = storage_dir
 
-# We define the table we're going to use
-uploaded_videos = Table('uploaded_videos', metadata, autoload=True)
+# The 'uploaded_videos' table is already defined in models.py and imported
+# above via 'from models import *'; no reflection needed.
 
 
 @app.route('/')

@@ -30,14 +30,16 @@ from sqlalchemy.sql import *
 from typing import List, Dict
 from datetime import datetime
 from update_database import Update_DB
+# 'from sqlalchemy import *' above binds a submodule named 'engine', which
+# would otherwise shadow our Engine from 'database'. Re-import it explicitly.
+from database import engine
 
 # We declare variables
 storage_dir = os.getcwd() + "/../storage/"
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = storage_dir
 
-# We define the table we're going to use
-uploaded_videos = Table('uploaded_videos', metadata, autoload=True)
+# 'uploaded_videos' is defined in models.py and imported via 'from models import *'
 
 
 class Main_ops:
@@ -63,15 +65,15 @@ class Main_ops:
                 "%d/%m/%Y %H:%M:%S") +
                              " - File analyzed, storing values into DB")
             print(output_string, file=sys.stdout)
-            uploaded_videos = Table('uploaded_videos', metadata, autoload=True)
             con = engine.connect()
-            con.execute(uploaded_videos.insert(),
-                        input_content_origin=input_content_origin,
-                        status="Ingested",
-                        video_track_number=result[1])
+            con.execute(uploaded_videos.insert().values(
+                input_content_origin=input_content_origin,
+                status="Ingested",
+                video_track_number=result[1]))
+            con.commit()
             input_content_id = \
                 con.execute(
-                    uploaded_videos.select(
+                    uploaded_videos.select().where(
                         uploaded_videos.c.input_content_origin
                         == input_content_origin)
                 ).fetchone()[0]
@@ -91,7 +93,6 @@ class Main_ops:
         It works with nested operations, if one operation is
         successful, then starts the next.
         """
-        uploaded_videos = Table('uploaded_videos', metadata, autoload=True)
         con = engine.connect()
         input_content_id, video_key, kid, file_for_fragment = \
             Main_ops.define_packaging_variables(con)
@@ -106,11 +107,11 @@ class Main_ops:
         database and we launch the encryption """
         video_track_number = \
             con.execute(
-                uploaded_videos.select(
+                uploaded_videos.select().where(
                     uploaded_videos.c.input_content_id ==
                     input_content_id)).fetchone()[2]
         file_to_encrypt = \
-            con.execute(uploaded_videos.select(
+            con.execute(uploaded_videos.select().where(
                 uploaded_videos.c.input_content_id
                 == input_content_id)).fetchone()[4]
         encryptation = Video_ops.video_encrypt(
@@ -139,24 +140,17 @@ class Main_ops:
         process we are
         """
         """First we generate variables by consulting the database"""
-        uploaded_videos = Table('uploaded_videos', metadata, autoload=True)
         con = engine.connect()
-        status = \
-            con.execute(uploaded_videos.select(
-                uploaded_videos.c.packaged_content_id
-                == packaged_content_id)).fetchone()[3]
-        url = \
-            con.execute(uploaded_videos.select(
-                uploaded_videos.c.packaged_content_id
-                == packaged_content_id)).fetchone()[8]
-        video_key = \
-            con.execute(uploaded_videos.select(
-                uploaded_videos.c.packaged_content_id
-                == packaged_content_id)).fetchone()[5]
-        kid = \
-            con.execute(uploaded_videos.select(
-                uploaded_videos.c.packaged_content_id
-                == packaged_content_id)).fetchone()[6]
+        row = con.execute(uploaded_videos.select().where(
+            uploaded_videos.c.packaged_content_id
+            == packaged_content_id)).fetchone()
+        if row is None:
+            return ("No content found for packaged_content_id " +
+                    str(packaged_content_id))
+        status = row.status
+        url = row.url
+        video_key = row.video_key
+        kid = row.kid
         """
         If the status is 'Ready', process should be finished.
         In our code, when it's finished it should have generated a URL value.
@@ -166,9 +160,9 @@ class Main_ops:
             data_set = {"url": [url], "key": [video_key], "kid": [kid]}
             return (data_set)
         else:
-            output = ("The packaged_content_id with number" +
-                      packaged_content_id + "is currently with status" +
-                      status)
+            output = (f"The packaged_content_id with number "
+                      f"{packaged_content_id} is currently with status "
+                      f"{status}")
             return (output)
 
     def define_packaging_variables(con):
@@ -184,7 +178,7 @@ class Main_ops:
         kid = uploaded_json['kid']
         """First file needs to be fragmented"""
         file_for_fragment = \
-            con.execute(uploaded_videos.select(
+            con.execute(uploaded_videos.select().where(
                 uploaded_videos.c.input_content_id
                 == input_content_id)).fetchone()[1]
         print(file_for_fragment)

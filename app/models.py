@@ -12,8 +12,8 @@ connect the database and map it with our model for this App
 """
 
 from sqlalchemy import *
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import *
+from sqlalchemy.orm import registry
 from database import metadata, db_session
 
 
@@ -26,7 +26,7 @@ class VideosDB(object):
                                 "output_file_path", "video_key", "kid",
                                 "packaged_content_id", "url"
                                 ), tuple(params)):
-            setattr(self, name, None)
+            setattr(self, name, value)
 
     def __repr__(self):
         return '<VideosDB %r>' % (self.input_content_id)
@@ -45,4 +45,5 @@ uploaded_videos = Table('uploaded_videos', metadata,
                         Column('url', String(255))
                         )
 
-mapper(VideosDB, uploaded_videos)
+mapper_registry = registry()
+mapper_registry.map_imperatively(VideosDB, uploaded_videos)
